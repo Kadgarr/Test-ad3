@@ -1,0 +1,27 @@
+{
+  "host": "127.0.0.1",
+  "port": 27791,
+  "portMode": "fixed",
+  "clientConfigEntries": {
+    "claude_code": {
+      "serverName": "cocos-cf-playablea-13985f",
+      "url": "http://127.0.0.1:27791/",
+      "configPath": "C:\\Users\\justr\\.claude.json",
+      "projectIdentity": "13985f6ad58788d81e7fe608"
+    }
+  },
+  "toolProfile": "core",
+  "enabledTools": [],
+  "disabledTools": [],
+  "enabledToolCategories": [],
+  "disabledToolCategories": [],
+  "enableSessions": false,
+  "enableConsoleLogging": true,
+  "executeJavascriptSafetyChecks": true,
+  "autostart": true,
+  "maxInteractionLogEntries": 50,
+  "lastClientTargetId": "claude_code",
+  "activeToolProfileName": "",
+  "savedToolProfiles": [],
+  "language": "auto"
+}
