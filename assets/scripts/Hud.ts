@@ -1,7 +1,9 @@
 // Runtime-built UI: HP bars, choice cards, hand hint, popups, world tags, end card.
+// Event-driven: HP bars react to EV.CASTLE_HP and animate with tweens (no per-frame redraw).
 // Greybox only: icons are colour swatches, replaced by sprites in Stage 5.
 import { Node, Canvas, Camera, Layers, UITransform, Graphics, Label, Color, Vec3, view, tween, Tween, UIOpacity } from 'cc';
 import { hexColor } from './Greybox';
+import { GameEvents, EV } from './Events';
 
 const UI = Layers.Enum.UI_2D;
 const WHITE = new Color(255, 255, 255, 255);
@@ -40,14 +42,14 @@ export interface CardInfo { title: string; tag: string; color: string; }
 
 class Bar {
     node: Node;
-    frac = 1;
-    flash = 0;
     private g: Graphics;
-    private shown = 1;
     private w = 300;
     private col: Color;
     private flashCol: Color;
+    private bg = new Color(15, 18, 30, 210);
     private tmpC = new Color();
+    private shown = { v: 1 }; // animated fill fraction
+    private fl = { v: 0 };    // animated flash amount
 
     constructor(parent: Node, title: string, hex: string, flashCol: Color) {
         this.node = uiNode('Bar_' + title, parent, 300, 30);
@@ -56,24 +58,37 @@ class Bar {
         this.flashCol = flashCol;
         const l = mkLabel(this.node, title, 24, WHITE);
         l.node.setPosition(0, 34);
+        this.draw();
     }
 
     setWidth(w: number) {
         this.w = w;
         this.node.getComponent(UITransform).setContentSize(w, 30);
+        this.draw();
     }
 
-    update(dt: number) {
-        this.shown += (this.frac - this.shown) * Math.min(1, dt * 6);
-        this.flash = Math.max(0, this.flash - dt * 3);
+    // Tween to the new value; Graphics is redrawn only while the bar is actually moving.
+    set(frac: number) {
+        Tween.stopAllByTarget(this.shown);
+        tween(this.shown).to(0.3, { v: Math.max(0, Math.min(1, frac)) }, { onUpdate: () => this.draw() }).start();
+    }
+
+    flash() {
+        Tween.stopAllByTarget(this.fl);
+        this.fl.v = 1;
+        this.draw();
+        tween(this.fl).to(0.33, { v: 0 }, { onUpdate: () => this.draw() }).start();
+    }
+
+    private draw() {
         const g = this.g, w = this.w, h = 26;
         g.clear();
-        g.fillColor = new Color(15, 18, 30, 210);
+        g.fillColor = this.bg;
         g.roundRect(-w / 2 - 5, -h / 2 - 5, w + 10, h + 10, 12);
         g.fill();
-        Color.lerp(this.tmpC, this.col, this.flashCol, Math.min(1, this.flash));
+        Color.lerp(this.tmpC, this.col, this.flashCol, this.fl.v);
         g.fillColor = this.tmpC;
-        const fw = w * Math.max(0, Math.min(1, this.shown));
+        const fw = w * this.shown.v;
         if (fw > 2) { g.roundRect(-w / 2, -h / 2, fw, h, 9); g.fill(); }
     }
 }
@@ -148,7 +163,8 @@ export class Hud {
     private endWin = true;
     private overlay: Graphics = null;
     private popupFree: Node[] = [];
-    private tags: { node: Node; fn: () => Vec3 }[] = [];
+    private tags: { node: Node; fn: (out: Vec3) => boolean }[] = [];
+    private tmpW = new Vec3();
     private tmp = new Vec3();
 
     constructor(scene: Node, cam3d: Camera) {
@@ -174,6 +190,7 @@ export class Hud {
 
         this.bars.push(new Bar(c, 'YOU', '#4f86ff', RED));
         this.bars.push(new Bar(c, 'ENEMY', '#ff5a4a', WHITE));
+        GameEvents.on(EV.CASTLE_HP, this.onCastleHp, this);
 
         this.cardsRoot = uiNode('Cards', c, 10, 10);
         this.prompt = mkLabel(this.cardsRoot, '', 34, WHITE);
@@ -236,12 +253,15 @@ export class Hud {
         if (this.endRoot) this.layoutEnd(W, H);
     }
 
-    setBars(playerFrac: number, enemyFrac: number) {
-        this.bars[0].frac = playerFrac;
-        this.bars[1].frac = enemyFrac;
+    private onCastleHp(c: any, delta: number) {
+        const b = this.bars[c.side];
+        b.set(c.frac);
+        if (delta > 0) b.flash();
     }
 
-    flash(side: number) { this.bars[side].flash = 1; }
+    flash(side: number) { this.bars[side].flash(); }
+
+    dispose() { GameEvents.targetOff(this); }
 
     showCards(infos: CardInfo[], prompt: string) {
         this.cardsRoot.active = true;
@@ -306,18 +326,19 @@ export class Hud {
         tween(op).delay(0.4).to(0.32, { opacity: 0 }).start();
     }
 
-    addTag(text: string, hex: string, fn: () => Vec3) {
+    // fn writes the world position into `out` and returns false when the tag should be removed.
+    addTag(text: string, hex: string, fn: (out: Vec3) => boolean) {
         const l = mkLabel(this.canvas, text, 26, hexColor(hex));
         this.tags.push({ node: l.node, fn });
     }
 
-    update(dt: number) {
-        for (const b of this.bars) b.update(dt);
+    // World-anchored labels follow moving units, so they need the game tick — but only while any exist.
+    updateTags() {
+        if (this.tags.length === 0) return;
         for (let i = this.tags.length - 1; i >= 0; i--) {
             const t = this.tags[i];
-            const p = t.fn();
-            if (!p) { t.node.destroy(); this.tags.splice(i, 1); continue; }
-            this.cam3d.convertToUINode(p, this.canvas, this.tmp);
+            if (!t.fn(this.tmpW)) { t.node.destroy(); this.tags.splice(i, 1); continue; }
+            this.cam3d.convertToUINode(this.tmpW, this.canvas, this.tmp);
             t.node.setPosition(this.tmp);
         }
     }

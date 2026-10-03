@@ -1,4 +1,6 @@
-// Scenario state machine. Guarantees the scripted beats while LaneSim plays a fair fight.
+// Scenario state machine. Event-driven: reacts to GameEvents (castle HP, unit spawn/death)
+// and to state timers (scheduleOnce with an epoch guard). It also owns the single game tick:
+// update() only scales time, steps LaneSim, debris and world tags — no polling of game state.
 import { _decorator, Component, Node, Camera, Color, Layers, DirectionalLight, Material, director, Vec3, tween, Tween, view, ResolutionPolicy } from 'cc';
 import { PLAYER, ENEMY, LAYOUT, TIMING, CHOICES, BUILDINGS, UNITS } from './Config';
 import { Pool, buildingLook, castleLook, ground, decor, slotBase, slotRing, fxLook, setBaseMaterials, baseFences, landmarks } from './Greybox';
@@ -7,6 +9,7 @@ import { CameraRig } from './CameraRig';
 import { Hud, CardInfo } from './Hud';
 import { Destruction } from './Destruction';
 import { AdAdapter } from './AdAdapter';
+import { GameEvents, EV } from './Events';
 const { ccclass, property } = _decorator;
 
 interface SlotView { side: number; pos: Vec3; ring: Node; building: Node; spawner: Spawner; }
@@ -15,6 +18,8 @@ type State = 'BOOT' | 'INTRO' | 'CHOICE' | 'WRONG' | 'BATTLE_1' | 'LAIR' | 'THRE
     | 'BATTLE_2' | 'NEST' | 'BOSS' | 'BATTLE_3' | 'FINALE' | 'END' | 'FAIL';
 
 let adReadySent = false;
+const tmpV = new Vec3();
+const ONE = new Vec3(1, 1, 1);
 
 @ccclass('Director')
 export class Director extends Component {
@@ -39,18 +44,19 @@ export class Director extends Component {
     private eCastle: Castle = null;
 
     private state: State = 'BOOT';
-    private stateT = 0;
+    private clock = 0;      // real seconds since start; one accumulator for every cooldown/ramp
+    private epoch = 0;      // bumped on each state change: timers of the previous state become no-ops
     private timeScale = 1;
     private targetScale = 1;
     private step = 0;
-    private choiceT = 0;
-    private hintShown = false;
     private forceHint = false;
     private wrongSlot: SlotView = null;
     private dragon: Unit = null;
+    private dragonDown = false;
+    private fortressOpen = false;
     private portrait: boolean = null;
-    private shakeCd = 0;
-    private hitFxCd = [0, 0];
+    private shakeAt = 0;
+    private hitFxAt = [0, 0];
     private savedMinFrac = 0;
     private wrongCount = 0;
     private stepHp = 0;
@@ -68,14 +74,7 @@ export class Director extends Component {
         this.world = new Node('World');
         scene.addChild(this.world);
         this.pool = new Pool(this.world);
-        this.sim = new LaneSim(this.pool, {
-            onImmune: (u) => {
-                this.hud.popup('IMMUNE', new Vec3(u.x, 2.6, u.z), '#ffe14d');
-                this.fx(new Vec3(u.x, 1.2, u.z), '#fff3a0', 0.8, 0.18);
-            },
-            onCastleHit: (c) => this.onCastleHit(c),
-            onSplash: (p, r) => this.fx(p, '#ff8a1f', r * 2, 0.35),
-        });
+        this.sim = new LaneSim(this.pool);
         this.buildArena();
         this.sim.castles = [this.pCastle, this.eCastle];
 
@@ -86,6 +85,12 @@ export class Director extends Component {
         this.rig.onResize = (p) => this.onResize(p);
         this.rig.apply(true);
 
+        GameEvents.on(EV.CASTLE_HP, this.onCastleHp, this);
+        GameEvents.on(EV.UNIT_SPAWNED, this.onUnitSpawned, this);
+        GameEvents.on(EV.UNIT_DIED, this.onUnitDied, this);
+        GameEvents.on(EV.IMMUNE, this.onImmune, this);
+        GameEvents.on(EV.SPLASH, this.onSplash, this);
+
         // Player starts with an empty lane: units come only from buildings in slots.
         // Orc barracks stand from the start.
         this.buildIn(this.eSlots[0], 'barracks', false);
@@ -94,6 +99,43 @@ export class Director extends Component {
 
         if (!adReadySent) { adReadySent = true; AdAdapter.ready(); }
         this.go('INTRO');
+    }
+
+    onDestroy() {
+        GameEvents.targetOff(this);
+        if (this.hud) this.hud.dispose();
+    }
+
+    // ---------- the single game tick ----------
+
+    update(dt: number) {
+        if (this.state === 'BOOT') return;
+        this.clock += dt;
+        if (this.timeScale !== this.targetScale) {
+            this.timeScale += (this.targetScale - this.timeScale) * Math.min(1, dt * 10);
+            if (Math.abs(this.targetScale - this.timeScale) < 0.002) this.timeScale = this.targetScale;
+        }
+        this.sim.update(dt * this.timeScale);
+        if (this.destruction.active) this.destruction.update(dt);
+        this.hud.updateTags();
+    }
+
+    // ---------- timers ----------
+
+    // One-shot timer bound to the current state: ignored if the state changes before it fires.
+    private after(sec: number, fn: () => void) {
+        const e = this.epoch;
+        this.scheduleOnce(() => { if (e === this.epoch) fn(); }, sec);
+    }
+
+    // Repeating timer bound to the current state: unschedules itself once the state changes.
+    private every(sec: number, fn: () => void) {
+        const e = this.epoch;
+        const tick = () => {
+            if (e !== this.epoch) { this.unschedule(tick); return; }
+            fn();
+        };
+        this.schedule(tick, sec);
     }
 
     // ---------- setup ----------
@@ -153,6 +195,59 @@ export class Director extends Component {
         if (this.hud) this.hud.layout();
     }
 
+    // ---------- event handlers ----------
+
+    private onCastleHp(c: Castle, delta: number) {
+        if (delta > 0) this.hitFeedback(c);
+        if (c === this.pCastle) {
+            if (c.hp <= 0) {
+                if (this.state !== 'FAIL' && this.state !== 'FINALE' && this.state !== 'END') this.citadelFalls();
+                return;
+            }
+            if (this.state === 'WRONG' && c.hp <= this.wrongTarget + 0.5) this.endWrong();
+            else if (this.state === 'THREAT_2' && this.threatStartHp - c.hp >= TIMING.threatDamage * c.maxHp) this.openChoice(1);
+        } else {
+            if (this.state === 'BATTLE_2' && c.frac <= 0.36) this.go('NEST');
+            else if (this.state === 'BATTLE_3' && c.hp <= 0.5) this.go('FINALE');
+        }
+    }
+
+    private onUnitSpawned(u: Unit) {
+        this.updateComeback();
+        if (u.def.id === 'dragon') {
+            this.dragon = u;
+            this.dragonDown = false;
+            this.hud.addTag('AIR', '#9fe3ff', (out) => {
+                if (!u.alive) return false;
+                out.set(u.x, LAYOUT.airHeight + 2.2, u.z);
+                return true;
+            });
+        }
+    }
+
+    private onUnitDied(u: Unit) {
+        this.updateComeback();
+        if (u === this.dragon) {
+            this.dragonDown = true;
+            if (this.state === 'BATTLE_3') this.openFortress();
+        }
+    }
+
+    private onImmune(u: Unit) {
+        this.hud.popup('IMMUNE', tmpV.set(u.x, 2.6, u.z), '#ffe14d');
+        this.fx(tmpV.set(u.x, 1.2, u.z), '#fff3a0', 0.8, 0.18);
+    }
+
+    private onSplash(x: number, z: number, r: number) {
+        this.fx(tmpV.set(x, 0.3, z), '#ff8a1f', r * 2, 0.35);
+    }
+
+    // Numbers changed (spawn/death) -> recompute the catch-up bonus once, not every frame.
+    private updateComeback() {
+        const diff = this.sim.count(ENEMY) - this.sim.count(PLAYER);
+        this.sim.comeback[PLAYER] = 1 + Math.max(0, Math.min(TIMING.comebackMaxDiff, diff)) * TIMING.comebackPerUnit;
+    }
+
     // ---------- helpers ----------
 
     private log(msg: string) { if (this.logStates) console.log('[Director] ' + msg); }
@@ -164,8 +259,8 @@ export class Director extends Component {
         b.setPosition(slot.pos);
         if (anim) {
             b.setScale(0.05, 0.05, 0.05);
-            tween(b).to(0.35, { scale: new Vec3(1, 1, 1) }, { easing: 'backOut' }).start();
-            this.fx(new Vec3(slot.pos.x, 0.8, slot.pos.z), '#ffffff', 3.2, 0.3);
+            tween(b).to(0.35, { scale: ONE }, { easing: 'backOut' }).start();
+            this.fx(tmpV.set(slot.pos.x, 0.8, slot.pos.z), '#ffffff', 3.2, 0.3);
         }
         slot.building = b;
         if (slot.side === PLAYER && !def.maxCount) this.burst(slot, def.unit);
@@ -198,7 +293,7 @@ export class Director extends Component {
         Tween.stopAllByTarget(r);
         r.active = on;
         r.setScale(1, 1, 1);
-        if (on) tween(r).to(0.4, { scale: new Vec3(1.12, 1, 1.12) }).to(0.4, { scale: new Vec3(1, 1, 1) }).union().repeatForever().start();
+        if (on) tween(r).to(0.4, { scale: new Vec3(1.12, 1, 1.12) }).to(0.4, { scale: ONE }).union().repeatForever().start();
     }
 
     private fx(pos: Vec3, hex: string, size: number, dur: number) {
@@ -213,65 +308,85 @@ export class Director extends Component {
             .start();
     }
 
-    private onCastleHit(c: Castle) {
-        this.hud.flash(c.side);
-        if (this.hitFxCd[c.side] <= 0) {
-            this.hitFxCd[c.side] = 0.12;
+    // Visual reaction to a castle hit (HUD bar flash is handled by the Hud's own listener).
+    private hitFeedback(c: Castle) {
+        if (this.clock >= this.hitFxAt[c.side]) {
+            this.hitFxAt[c.side] = this.clock + 0.12;
             const face = c.side === ENEMY ? -LAYOUT.castleHalf : LAYOUT.castleHalf;
-            this.fx(new Vec3(c.x + face, 0.6 + Math.random() * 2.2, (Math.random() - 0.5) * 3.2),
+            this.fx(tmpV.set(c.x + face, 0.6 + Math.random() * 2.2, (Math.random() - 0.5) * 3.2),
                 c.side === ENEMY ? '#ffd27a' : '#ff6a5a', 0.9, 0.2);
             const n = c.node;
             Tween.stopAllByTarget(n);
             n.setScale(1, 1, 1);
-            tween(n).to(0.05, { scale: new Vec3(1.03, 0.97, 1.03) }).to(0.08, { scale: new Vec3(1, 1, 1) }).start();
+            tween(n).to(0.05, { scale: new Vec3(1.03, 0.97, 1.03) }).to(0.08, { scale: ONE }).start();
         }
-        if (c.side === PLAYER && this.shakeCd <= 0) {
+        if (c.side === PLAYER && this.clock >= this.shakeAt) {
             this.rig.shake(0.12, 0.15);
-            this.shakeCd = 0.3;
+            this.shakeAt = this.clock + 0.3;
         }
     }
 
-    private damageCastle(c: Castle, frac: number) {
-        const min = c.minFrac * c.maxHp;
-        c.hp = Math.max(min, c.hp - c.maxHp * frac);
-        this.hud.flash(c.side);
-    }
-
-    private assist(t: number, assistAt: number, timeoutAt: number, dt: number) {
-        if (t > assistAt) this.sim.buff[PLAYER] = 1 + (t - assistAt) * 0.5;
-
+    // Player units get stronger the longer a battle drags on (sampled 4x/sec, not every frame).
+    private assistFrom(delay: number) {
+        this.after(delay, () => {
+            const t0 = this.clock;
+            this.every(0.25, () => {
+                const v = 1 + (this.clock - t0) * 0.5;
+                this.sim.buff[PLAYER] = this.fortressOpen ? Math.max(2.2, v) : v;
+            });
+        });
     }
 
     // ---------- flow ----------
 
     private go(s: State) {
         this.state = s;
-        this.stateT = 0;
+        this.epoch++;
         this.log(s + (s === 'CHOICE' ? ' #' + (this.step + 1) : ''));
         if (s !== 'BATTLE_3') this.sim.buff[PLAYER] = 1;
         switch (s) {
+            case 'INTRO':
+                this.after(TIMING.intro, () => this.openChoice(0));
+                break;
             case 'BATTLE_1':
                 this.pCastle.minFrac = 0.9;
                 this.eCastle.minFrac = 0.85;
+                this.after(TIMING.battle1, () => this.go('LAIR'));
                 break;
             case 'LAIR':
                 this.buildIn(this.eSlots[1], 'golem_lair');
+                this.after(TIMING.enemyBuild, () => this.go('THREAT_2'));
                 break;
             case 'THREAT_2':
+                // Cards open once the golems have really hurt the Citadel (onCastleHp), or on timeout.
                 this.threatStartHp = this.pCastle.hp;
                 this.pCastle.minFrac = Math.max(0.05, this.threatStartHp / this.pCastle.maxHp - 0.28);
+                this.after(TIMING.threatTimeout, () => this.openChoice(1));
                 break;
             case 'BATTLE_2':
                 this.pCastle.minFrac = 0.3;
                 this.eCastle.minFrac = 0.35;
                 if (this.eSlots[1].spawner) this.eSlots[1].spawner.interval = 5.0;
+                this.assistFrom(TIMING.battle2Assist);
                 break;
             case 'NEST':
                 this.sim.spawnEnabled[ENEMY] = true;
                 this.buildIn(this.eSlots[2], 'dragon_nest');
+                this.after(TIMING.enemyBuild, () => this.go('BOSS'));
+                break;
+            case 'BOSS':
+                this.after(TIMING.bossToChoice, () => this.openChoice(2));
+                break;
+            case 'BATTLE_3':
+                if (this.dragonDown) this.openFortress();
+                this.assistFrom(TIMING.battle3Assist);
+                break;
+            case 'WRONG':
+                this.after(TIMING.wrongBeat, () => this.endWrong());
                 break;
             case 'FINALE':
                 this.finale();
+                this.after(TIMING.finaleToEnd, () => this.go('END'));
                 break;
             case 'END':
                 this.sim.stopCombat();
@@ -281,7 +396,7 @@ export class Director extends Component {
             case 'FAIL':
                 this.targetScale = 1;
                 this.sim.stopCombat();
-                for (const s of this.pSlots) this.showRing(s, false);
+                for (const sl of this.pSlots) this.showRing(sl, false);
                 this.rig.shake(0.5, 0.6);
                 this.hud.showEnd(false);
                 AdAdapter.end();
@@ -296,9 +411,7 @@ export class Director extends Component {
         }
         this.step = i;
         this.go('CHOICE');
-        this.choiceT = 0;
         this.savedMinFrac = this.pCastle.minFrac;
-        this.hintShown = false;
         const ch = CHOICES[i];
         this.showRing(this.pSlots[ch.slot], true);
         const infos: CardInfo[] = ch.cards.map(c => {
@@ -308,11 +421,27 @@ export class Director extends Component {
         this.hud.showCards(infos, ch.prompt);
         this.targetScale = TIMING.slowmo;
         if (this.forceHint) this.showHint();
+        else this.after(TIMING.hintDelay, () => this.showHint());
+        this.after(TIMING.idleDamageDelay, () => this.startSiege());
     }
 
     private showHint() {
-        this.hintShown = true;
         this.hud.showHint(CHOICES[this.step].hint);
+    }
+
+    // Player hesitates: slow-mo ends and the enemies that reached the walls hit the Citadel harder and harder.
+    private startSiege() {
+        const t0 = this.clock;
+        this.targetScale = 1;
+        this.pCastle.minFrac = 0;
+        this.sim.castleMult[ENEMY] = TIMING.siegeCastleMult;
+        this.every(0.25, () => { this.sim.buff[ENEMY] = 1 + (this.clock - t0) * TIMING.siegeRamp; });
+    }
+
+    private endSiege() {
+        this.sim.buff[ENEMY] = 1;
+        this.sim.castleMult[ENEMY] = 1;
+        this.pCastle.minFrac = Math.min(this.savedMinFrac, this.pCastle.frac);
     }
 
     private pick(idx: number) {
@@ -342,6 +471,31 @@ export class Director extends Component {
         else this.go('BATTLE_3');
     }
 
+    // Wrong-counter beat ends: enemies took this attempt's HP share (or the closing blow finishes it).
+    private endWrong() {
+        if (this.state !== 'WRONG') return;
+        const c = this.pCastle;
+        this.sim.castleMult[ENEMY] = 1;
+        this.clearSlot(this.wrongSlot);
+        this.hud.flash(PLAYER);
+        this.rig.shake(0.35, 0.35);
+        this.fx(tmpV.set(c.x + LAYOUT.castleHalf, 1.5, 0), '#ff6a5a', 2.2, 0.3);
+        if (c.hp > this.wrongTarget) c.setHp(this.wrongTarget); // at 0 this triggers citadelFalls via onCastleHp
+        if (this.state !== 'WRONG') return;
+        const left = TIMING.wrongAttempts - this.wrongCount;
+        this.hud.popup(left === 1 ? 'WRONG! LAST CHANCE!' : 'WRONG COUNTER!', tmpV.set(c.x, 4, 0), '#ff5a4a');
+        this.forceHint = true;
+        this.openChoice(this.step, true);
+    }
+
+    // Dragon is down: the orcs are broken, the fortress can fall and our army pushes to the walls.
+    private openFortress() {
+        this.fortressOpen = true;
+        this.eCastle.minFrac = 0;
+        this.sim.buff[PLAYER] = Math.max(this.sim.buff[PLAYER], 2.2);
+        this.sim.spawnEnabled[ENEMY] = false;
+    }
+
     private finale() {
         this.targetScale = 1;
         this.sim.stopCombat();
@@ -356,33 +510,6 @@ export class Director extends Component {
         this.rig.zoomTo(1.15, 1.2);
     }
 
-    private trackDragon() {
-        if (this.dragon) return;
-        for (const u of this.sim.units) {
-            if (u.alive && u.def.id === 'dragon') {
-                this.dragon = u;
-                const d = u;
-                this.hud.addTag('AIR', '#9fe3ff', () => d.alive ? new Vec3(d.x, LAYOUT.airHeight + 2.2, d.z) : null);
-                break;
-            }
-        }
-    }
-
-    // Player hesitates: slow-mo ends and the enemies that reached the walls hit the Citadel harder and harder.
-    private siege() {
-        const k = this.choiceT - TIMING.idleDamageDelay;
-        this.targetScale = 1;
-        this.pCastle.minFrac = 0;
-        this.sim.buff[ENEMY] = 1 + k * TIMING.siegeRamp;
-        this.sim.castleMult[ENEMY] = TIMING.siegeCastleMult;
-    }
-
-    private endSiege() {
-        this.sim.buff[ENEMY] = 1;
-        this.sim.castleMult[ENEMY] = 1;
-        this.pCastle.minFrac = Math.min(this.savedMinFrac, this.pCastle.frac);
-    }
-
     private citadelFalls() {
         this.hud.hideCards();
         for (const s of this.pSlots) this.showRing(s, false);
@@ -390,95 +517,5 @@ export class Director extends Component {
         this.destruction.run(this.world, this.pCastle.node.getPosition(), new Vec3(4, 3.5, 4.6),
             ['#7d9be0', '#5b7bc8', '#2c5fe0', '#8fabe8'], 70);
         this.go('FAIL');
-    }
-
-    update(dt: number) {
-        if (this.state === 'BOOT') return;
-        this.timeScale += (this.targetScale - this.timeScale) * Math.min(1, dt * 10);
-        const sdt = dt * this.timeScale;
-        this.stateT += dt;
-        this.shakeCd -= dt;
-        this.hitFxCd[0] -= dt;
-        this.hitFxCd[1] -= dt;
-        const diff = this.sim.count(ENEMY) - this.sim.count(PLAYER);
-        this.sim.comeback[PLAYER] = 1 + Math.max(0, Math.min(TIMING.comebackMaxDiff, diff)) * TIMING.comebackPerUnit;
-        this.sim.update(sdt);
-        this.destruction.update(dt);
-        this.hud.setBars(this.pCastle.frac, this.eCastle.frac);
-        this.hud.update(dt);
-        if (this.pCastle.hp <= 0 && this.state !== 'FAIL' && this.state !== 'FINALE' && this.state !== 'END') {
-            this.citadelFalls();
-            return;
-        }
-
-        const t = this.stateT;
-        switch (this.state) {
-            case 'INTRO':
-                if (t >= TIMING.intro) this.openChoice(0);
-                break;
-            case 'CHOICE':
-                this.choiceT += dt;
-                if (!this.hintShown && this.choiceT >= TIMING.hintDelay) this.showHint();
-                if (this.choiceT >= TIMING.idleDamageDelay) this.siege();
-                break;
-            case 'WRONG':
-                // Enemies hit the Citadel (boosted) until this attempt's HP share is gone or the beat ends.
-                if (this.pCastle.hp <= this.wrongTarget + 0.5 || t >= TIMING.wrongBeat) {
-                    const c = this.pCastle;
-                    if (c.hp > this.wrongTarget) c.hp = this.wrongTarget; // finish the share with the closing blow
-                    this.sim.castleMult[ENEMY] = 1;
-                    this.clearSlot(this.wrongSlot);
-                    this.hud.flash(PLAYER);
-                    this.rig.shake(0.35, 0.35);
-                    this.fx(new Vec3(c.x + LAYOUT.castleHalf, 1.5, 0), '#ff6a5a', 2.2, 0.3);
-                    if (c.hp <= 0.5) {
-                        c.hp = 0;
-                        this.citadelFalls();
-                        break;
-                    }
-                    const left = TIMING.wrongAttempts - this.wrongCount;
-                    this.hud.popup(left === 1 ? 'WRONG! LAST CHANCE!' : 'WRONG COUNTER!', new Vec3(c.x, 4, 0), '#ff5a4a');
-                    this.forceHint = true;
-                    this.openChoice(this.step, true);
-                }
-                break;
-            case 'BATTLE_1':
-                if (t >= TIMING.battle1) this.go('LAIR');
-                break;
-            case 'LAIR':
-                if (t >= TIMING.enemyBuild) this.go('THREAT_2');
-                break;
-            case 'THREAT_2':
-                // Cards open once the golems have really hurt the Citadel (no scripted HP drop on timeout).
-                if (this.threatStartHp - this.pCastle.hp >= TIMING.threatDamage * this.pCastle.maxHp
-                    || t >= TIMING.threatTimeout) this.openChoice(1);
-                break;
-            case 'BATTLE_2':
-                if (this.eCastle.frac <= 0.36) this.go('NEST');
-                else this.assist(t, TIMING.battle2Assist, TIMING.battle2Timeout, dt);
-                break;
-            case 'NEST':
-                if (t >= TIMING.enemyBuild) this.go('BOSS');
-                break;
-            case 'BOSS':
-                this.trackDragon();
-                if (t >= TIMING.bossToChoice) this.openChoice(2);
-                break;
-            case 'BATTLE_3':
-                this.trackDragon();
-                if (!this.dragon || !this.dragon.alive) {
-                    this.eCastle.minFrac = 0;
-                    this.sim.buff[PLAYER] = Math.max(this.sim.buff[PLAYER], 2.2);
-                    // Dragon is down: the orcs are broken, our army pushes to the walls.
-                    this.sim.spawnEnabled[ENEMY] = false;
-                } else if (t > TIMING.battle3Assist) {
-                    this.sim.buff[PLAYER] = 1 + (t - TIMING.battle3Assist) * 0.5;
-                }
-                if (this.eCastle.hp <= 0.5) this.go('FINALE');
-                break;
-            case 'FINALE':
-                if (t >= TIMING.finaleToEnd) this.go('END');
-                break;
-        }
     }
 }

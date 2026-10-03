@@ -1,4 +1,5 @@
 // Scripted fracture: fake ballistic fragments, no physics module.
+// Ticked by the Director only while fragments are still moving (see `active`).
 import { Node, Vec3 } from 'cc';
 import { part } from './Greybox';
 
@@ -6,7 +7,10 @@ interface Frag { n: Node; p: Vec3; v: Vec3; r: Vec3; av: Vec3; h: number; rest: 
 
 export class Destruction {
     private frags: Frag[] = [];
+    private moving = 0;
     private gravity = -26;
+
+    get active(): boolean { return this.moving > 0; }
 
     run(parent: Node, center: Vec3, size: Vec3, colors: string[], count = 90) {
         for (let i = 0; i < count; i++) {
@@ -22,11 +26,13 @@ export class Destruction {
                 (p.z - center.z) * 2.2 + (Math.random() - 0.5) * 3);
             const av = new Vec3((Math.random() - 0.5) * 720, (Math.random() - 0.5) * 720, (Math.random() - 0.5) * 720);
             this.frags.push({ n, p, v, r: new Vec3(), av, h: s / 2, rest: false });
+            this.moving++;
         }
     }
 
     update(dt: number) {
-        for (const f of this.frags) {
+        for (let i = 0; i < this.frags.length; i++) {
+            const f = this.frags[i];
             if (f.rest) continue;
             f.v.y += this.gravity * dt;
             f.p.x += f.v.x * dt; f.p.y += f.v.y * dt; f.p.z += f.v.z * dt;
@@ -35,7 +41,7 @@ export class Destruction {
                 f.p.y = f.h;
                 if (Math.abs(f.v.y) < 1.5) {
                     f.v.y = 0; f.v.x *= 0.85; f.v.z *= 0.85; f.av.multiplyScalar(0.8);
-                    if (Math.abs(f.v.x) + Math.abs(f.v.z) < 0.15) f.rest = true;
+                    if (Math.abs(f.v.x) + Math.abs(f.v.z) < 0.15) { f.rest = true; this.moving--; }
                 } else {
                     f.v.y = -f.v.y * 0.35; f.v.x *= 0.7; f.v.z *= 0.7; f.av.multiplyScalar(0.6);
                 }

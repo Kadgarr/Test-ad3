@@ -1,6 +1,7 @@
 // Fixed high isometric camera with portrait/landscape presets.
 // Landscape: lane runs left->right. Portrait: rig yaws 90deg so the player base is at the bottom.
-import { _decorator, Component, Camera, Quat, Vec3, screen, tween } from 'cc';
+// Event-driven: re-layout on resize/orientation events; update() is enabled only while shaking.
+import { _decorator, Component, Camera, Quat, Vec3, screen, view, tween } from 'cc';
 import { LAYOUT } from './Config';
 const { ccclass } = _decorator;
 
@@ -16,14 +17,29 @@ export class CameraRig extends Component {
     private lastH = -1;
     private base = new Vec3();
     private q = new Quat();
+    private inv = new Quat();
     private tmp = new Vec3();
+    private off = new Vec3();
+    private fwd = new Vec3();
     private shakeT = 0;
     private shakeDur = 0;
     private shakeAmp = 0;
 
     onLoad() {
         if (!this.cam) this.cam = this.getComponent(Camera);
+        this.enabled = false; // no per-frame work until a shake starts
+        screen.on('window-resize', this.onScreenChange, this);
+        screen.on('orientation-change', this.onScreenChange, this);
+        view.on('canvas-resize', this.onScreenChange, this);
     }
+
+    onDestroy() {
+        screen.off('window-resize', this.onScreenChange, this);
+        screen.off('orientation-change', this.onScreenChange, this);
+        view.off('canvas-resize', this.onScreenChange, this);
+    }
+
+    private onScreenChange() { this.apply(false); }
 
     apply(force = false) {
         const ws = screen.windowSize;
@@ -40,14 +56,13 @@ export class CameraRig extends Component {
     private layoutCamera(aspect: number) {
         const portrait = this.portrait;
         Quat.fromEuler(this.q, portrait ? -60 : -52, portrait ? -90 : 0, 0);
-        const inv = new Quat();
-        Quat.invert(inv, this.q);
+        Quat.invert(this.inv, this.q);
         const b = LAYOUT.bounds;
         let minX = 1e9, maxX = -1e9, minY = 1e9, maxY = -1e9;
         const v = this.tmp;
-        for (const x of [b.minX, b.maxX]) for (const y of [0, b.maxY]) for (const z of [b.minZ, b.maxZ]) {
-            v.set(x, y, z);
-            Vec3.transformQuat(v, v, inv);
+        for (let ix = 0; ix < 2; ix++) for (let iy = 0; iy < 2; iy++) for (let iz = 0; iz < 2; iz++) {
+            v.set(ix ? b.maxX : b.minX, iy ? b.maxY : 0, iz ? b.maxZ : b.minZ);
+            Vec3.transformQuat(v, v, this.inv);
             minX = Math.min(minX, v.x); maxX = Math.max(maxX, v.x);
             minY = Math.min(minY, v.y); maxY = Math.max(maxY, v.y);
         }
@@ -57,27 +72,29 @@ export class CameraRig extends Component {
         const half = Math.max((maxY - minY) / 2 / avail, (maxX - minX) / 2 / aspect) * this.margin * this.zoom;
         const cx = (minX + maxX) / 2, cy = (minY + maxY) / 2;
         const mid = bottom - top;
-        const off = new Vec3(cx, cy - mid * half, 0);
-        Vec3.transformQuat(off, off, this.q);
-        const fwd = new Vec3(0, 0, -1);
-        Vec3.transformQuat(fwd, fwd, this.q);
-        this.base.set(off.x - fwd.x * 60, off.y - fwd.y * 60, off.z - fwd.z * 60);
+        this.off.set(cx, cy - mid * half, 0);
+        Vec3.transformQuat(this.off, this.off, this.q);
+        this.fwd.set(0, 0, -1);
+        Vec3.transformQuat(this.fwd, this.fwd, this.q);
+        this.base.set(this.off.x - this.fwd.x * 60, this.off.y - this.fwd.y * 60, this.off.z - this.fwd.z * 60);
         this.node.setRotation(this.q);
         this.node.setPosition(this.base);
         if (this.cam) this.cam.orthoHeight = half;
     }
 
+    // Runs only while a shake is active (component is disabled otherwise).
     update(dt: number) {
-        this.apply(false);
-        if (this.shakeT > 0) {
-            this.shakeT -= dt;
-            const k = Math.max(0, this.shakeT / this.shakeDur) * this.shakeAmp;
-            this.node.setPosition(
-                this.base.x + (Math.random() - 0.5) * k,
-                this.base.y + (Math.random() - 0.5) * k,
-                this.base.z + (Math.random() - 0.5) * k);
-            if (this.shakeT <= 0) this.node.setPosition(this.base);
+        this.shakeT -= dt;
+        if (this.shakeT <= 0) {
+            this.node.setPosition(this.base);
+            this.enabled = false;
+            return;
         }
+        const k = (this.shakeT / this.shakeDur) * this.shakeAmp;
+        this.node.setPosition(
+            this.base.x + (Math.random() - 0.5) * k,
+            this.base.y + (Math.random() - 0.5) * k,
+            this.base.z + (Math.random() - 0.5) * k);
     }
 
     shake(amp: number, dur: number) {
@@ -85,6 +102,7 @@ export class CameraRig extends Component {
         this.shakeAmp = amp;
         this.shakeDur = dur;
         this.shakeT = dur;
+        this.enabled = true;
     }
 
     zoomTo(z: number, dur: number) {
