@@ -1,0 +1,75 @@
+{
+  "ver": "2.3.14",
+  "importer": "gltf",
+  "imported": true,
+  "uuid": "18e155e6-39e9-4957-a171-ca1f73fd484b",
+  "files": [],
+  "subMetas": {
+    "2a053": {
+      "importer": "gltf-mesh",
+      "uuid": "18e155e6-39e9-4957-a171-ca1f73fd484b@2a053",
+      "displayName": "",
+      "id": "2a053",
+      "name": "CliffB.mesh",
+      "userData": {
+        "gltfIndex": 0,
+        "triangleCount": 364
+      },
+      "ver": "1.1.1",
+      "imported": true,
+      "files": [
+        ".bin",
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "1c5e5": {
+      "importer": "gltf-scene",
+      "uuid": "18e155e6-39e9-4957-a171-ca1f73fd484b@1c5e5",
+      "displayName": "",
+      "id": "1c5e5",
+      "name": "cliff_b.prefab",
+      "userData": {
+        "gltfIndex": 0
+      },
+      "ver": "1.0.14",
+      "imported": true,
+      "files": [
+        ".json"
+      ],
+      "subMetas": {}
+    }
+  },
+  "userData": {
+    "imageMetas": [],
+    "lods": {
+      "enable": false,
+      "hasBuiltinLOD": false,
+      "options": [
+        {
+          "screenRatio": 0.25,
+          "faceCount": 1
+        },
+        {
+          "screenRatio": 0.125,
+          "faceCount": 0.25
+        },
+        {
+          "screenRatio": 0.01,
+          "faceCount": 0.1
+        }
+      ]
+    },
+    "assetFinder": {
+      "meshes": [
+        "18e155e6-39e9-4957-a171-ca1f73fd484b@2a053"
+      ],
+      "skeletons": [],
+      "textures": [],
+      "materials": [],
+      "scenes": [
+        "18e155e6-39e9-4957-a171-ca1f73fd484b@1c5e5"
+      ]
+    }
+  }
+}

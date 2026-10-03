@@ -1,0 +1,75 @@
+{
+  "ver": "2.3.14",
+  "importer": "gltf",
+  "imported": true,
+  "uuid": "c004c112-6d5a-42e6-915a-a8b1ab8b6383",
+  "files": [],
+  "subMetas": {
+    "68ba4": {
+      "importer": "gltf-mesh",
+      "uuid": "c004c112-6d5a-42e6-915a-a8b1ab8b6383@68ba4",
+      "displayName": "",
+      "id": "68ba4",
+      "name": "GolemLair.mesh",
+      "userData": {
+        "gltfIndex": 0,
+        "triangleCount": 716
+      },
+      "ver": "1.1.1",
+      "imported": true,
+      "files": [
+        ".bin",
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "7f794": {
+      "importer": "gltf-scene",
+      "uuid": "c004c112-6d5a-42e6-915a-a8b1ab8b6383@7f794",
+      "displayName": "",
+      "id": "7f794",
+      "name": "golem_lair.prefab",
+      "userData": {
+        "gltfIndex": 0
+      },
+      "ver": "1.0.14",
+      "imported": true,
+      "files": [
+        ".json"
+      ],
+      "subMetas": {}
+    }
+  },
+  "userData": {
+    "imageMetas": [],
+    "lods": {
+      "enable": false,
+      "hasBuiltinLOD": false,
+      "options": [
+        {
+          "screenRatio": 0.25,
+          "faceCount": 1
+        },
+        {
+          "screenRatio": 0.125,
+          "faceCount": 0.25
+        },
+        {
+          "screenRatio": 0.01,
+          "faceCount": 0.1
+        }
+      ]
+    },
+    "assetFinder": {
+      "meshes": [
+        "c004c112-6d5a-42e6-915a-a8b1ab8b6383@68ba4"
+      ],
+      "skeletons": [],
+      "textures": [],
+      "materials": [],
+      "scenes": [
+        "c004c112-6d5a-42e6-915a-a8b1ab8b6383@7f794"
+      ]
+    }
+  }
+}

@@ -1,0 +1,151 @@
+{
+  "ver": "2.3.14",
+  "importer": "gltf",
+  "imported": true,
+  "uuid": "5868d8ea-4681-42bb-8e7d-0323b72ace9a",
+  "files": [],
+  "subMetas": {
+    "54383": {
+      "importer": "gltf-mesh",
+      "uuid": "5868d8ea-4681-42bb-8e7d-0323b72ace9a@54383",
+      "displayName": "",
+      "id": "54383",
+      "name": "LegL.006.mesh",
+      "userData": {
+        "gltfIndex": 2,
+        "triangleCount": 56
+      },
+      "ver": "1.1.1",
+      "imported": true,
+      "files": [
+        ".bin",
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "a7b01": {
+      "importer": "gltf-mesh",
+      "uuid": "5868d8ea-4681-42bb-8e7d-0323b72ace9a@a7b01",
+      "displayName": "",
+      "id": "a7b01",
+      "name": "ArmL.007.mesh",
+      "userData": {
+        "gltfIndex": 0,
+        "triangleCount": 144
+      },
+      "ver": "1.1.1",
+      "imported": true,
+      "files": [
+        ".bin",
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "f909e": {
+      "importer": "gltf-mesh",
+      "uuid": "5868d8ea-4681-42bb-8e7d-0323b72ace9a@f909e",
+      "displayName": "",
+      "id": "f909e",
+      "name": "ArmR.007.mesh",
+      "userData": {
+        "gltfIndex": 1,
+        "triangleCount": 208
+      },
+      "ver": "1.1.1",
+      "imported": true,
+      "files": [
+        ".bin",
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "c9259": {
+      "importer": "gltf-mesh",
+      "uuid": "5868d8ea-4681-42bb-8e7d-0323b72ace9a@c9259",
+      "displayName": "",
+      "id": "c9259",
+      "name": "LegR.006.mesh",
+      "userData": {
+        "gltfIndex": 3,
+        "triangleCount": 56
+      },
+      "ver": "1.1.1",
+      "imported": true,
+      "files": [
+        ".bin",
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "65e49": {
+      "importer": "gltf-mesh",
+      "uuid": "5868d8ea-4681-42bb-8e7d-0323b72ace9a@65e49",
+      "displayName": "",
+      "id": "65e49",
+      "name": "Body.006.mesh",
+      "userData": {
+        "gltfIndex": 4,
+        "triangleCount": 412
+      },
+      "ver": "1.1.1",
+      "imported": true,
+      "files": [
+        ".bin",
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "3c745": {
+      "importer": "gltf-scene",
+      "uuid": "5868d8ea-4681-42bb-8e7d-0323b72ace9a@3c745",
+      "displayName": "",
+      "id": "3c745",
+      "name": "knight.prefab",
+      "userData": {
+        "gltfIndex": 0
+      },
+      "ver": "1.0.14",
+      "imported": true,
+      "files": [
+        ".json"
+      ],
+      "subMetas": {}
+    }
+  },
+  "userData": {
+    "imageMetas": [],
+    "lods": {
+      "enable": false,
+      "hasBuiltinLOD": false,
+      "options": [
+        {
+          "screenRatio": 0.25,
+          "faceCount": 1
+        },
+        {
+          "screenRatio": 0.125,
+          "faceCount": 0.25
+        },
+        {
+          "screenRatio": 0.01,
+          "faceCount": 0.1
+        }
+      ]
+    },
+    "assetFinder": {
+      "meshes": [
+        "5868d8ea-4681-42bb-8e7d-0323b72ace9a@a7b01",
+        "5868d8ea-4681-42bb-8e7d-0323b72ace9a@f909e",
+        "5868d8ea-4681-42bb-8e7d-0323b72ace9a@54383",
+        "5868d8ea-4681-42bb-8e7d-0323b72ace9a@c9259",
+        "5868d8ea-4681-42bb-8e7d-0323b72ace9a@65e49"
+      ],
+      "skeletons": [],
+      "textures": [],
+      "materials": [],
+      "scenes": [
+        "5868d8ea-4681-42bb-8e7d-0323b72ace9a@3c745"
+      ]
+    }
+  }
+}

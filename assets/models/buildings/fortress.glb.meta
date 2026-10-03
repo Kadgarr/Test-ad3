@@ -1,0 +1,75 @@
+{
+  "ver": "2.3.14",
+  "importer": "gltf",
+  "imported": true,
+  "uuid": "af7cb256-7ebc-431d-b05c-8a2d7ee67376",
+  "files": [],
+  "subMetas": {
+    "a71be": {
+      "importer": "gltf-mesh",
+      "uuid": "af7cb256-7ebc-431d-b05c-8a2d7ee67376@a71be",
+      "displayName": "",
+      "id": "a71be",
+      "name": "F_Base.001.mesh",
+      "userData": {
+        "gltfIndex": 0,
+        "triangleCount": 1738
+      },
+      "ver": "1.1.1",
+      "imported": true,
+      "files": [
+        ".bin",
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "d2177": {
+      "importer": "gltf-scene",
+      "uuid": "af7cb256-7ebc-431d-b05c-8a2d7ee67376@d2177",
+      "displayName": "",
+      "id": "d2177",
+      "name": "fortress.prefab",
+      "userData": {
+        "gltfIndex": 0
+      },
+      "ver": "1.0.14",
+      "imported": true,
+      "files": [
+        ".json"
+      ],
+      "subMetas": {}
+    }
+  },
+  "userData": {
+    "imageMetas": [],
+    "lods": {
+      "enable": false,
+      "hasBuiltinLOD": false,
+      "options": [
+        {
+          "screenRatio": 0.25,
+          "faceCount": 1
+        },
+        {
+          "screenRatio": 0.125,
+          "faceCount": 0.25
+        },
+        {
+          "screenRatio": 0.01,
+          "faceCount": 0.1
+        }
+      ]
+    },
+    "assetFinder": {
+      "meshes": [
+        "af7cb256-7ebc-431d-b05c-8a2d7ee67376@a71be"
+      ],
+      "skeletons": [],
+      "textures": [],
+      "materials": [],
+      "scenes": [
+        "af7cb256-7ebc-431d-b05c-8a2d7ee67376@d2177"
+      ]
+    }
+  }
+}

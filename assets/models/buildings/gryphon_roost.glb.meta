@@ -1,0 +1,75 @@
+{
+  "ver": "2.3.14",
+  "importer": "gltf",
+  "imported": true,
+  "uuid": "c573eabb-908d-4cbe-a83d-6b6ba62c4a59",
+  "files": [],
+  "subMetas": {
+    "3c113": {
+      "importer": "gltf-mesh",
+      "uuid": "c573eabb-908d-4cbe-a83d-6b6ba62c4a59@3c113",
+      "displayName": "",
+      "id": "3c113",
+      "name": "GryphonRoost.mesh",
+      "userData": {
+        "gltfIndex": 0,
+        "triangleCount": 640
+      },
+      "ver": "1.1.1",
+      "imported": true,
+      "files": [
+        ".bin",
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "b92e6": {
+      "importer": "gltf-scene",
+      "uuid": "c573eabb-908d-4cbe-a83d-6b6ba62c4a59@b92e6",
+      "displayName": "",
+      "id": "b92e6",
+      "name": "gryphon_roost.prefab",
+      "userData": {
+        "gltfIndex": 0
+      },
+      "ver": "1.0.14",
+      "imported": true,
+      "files": [
+        ".json"
+      ],
+      "subMetas": {}
+    }
+  },
+  "userData": {
+    "imageMetas": [],
+    "lods": {
+      "enable": false,
+      "hasBuiltinLOD": false,
+      "options": [
+        {
+          "screenRatio": 0.25,
+          "faceCount": 1
+        },
+        {
+          "screenRatio": 0.125,
+          "faceCount": 0.25
+        },
+        {
+          "screenRatio": 0.01,
+          "faceCount": 0.1
+        }
+      ]
+    },
+    "assetFinder": {
+      "meshes": [
+        "c573eabb-908d-4cbe-a83d-6b6ba62c4a59@3c113"
+      ],
+      "skeletons": [],
+      "textures": [],
+      "materials": [],
+      "scenes": [
+        "c573eabb-908d-4cbe-a83d-6b6ba62c4a59@b92e6"
+      ]
+    }
+  }
+}

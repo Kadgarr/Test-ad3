@@ -1,0 +1,75 @@
+{
+  "ver": "2.3.14",
+  "importer": "gltf",
+  "imported": true,
+  "uuid": "09fd8c99-34c2-4280-8367-e333cb4ca611",
+  "files": [],
+  "subMetas": {
+    "817c4": {
+      "importer": "gltf-mesh",
+      "uuid": "09fd8c99-34c2-4280-8367-e333cb4ca611@817c4",
+      "displayName": "",
+      "id": "817c4",
+      "name": "SlotRing.mesh",
+      "userData": {
+        "gltfIndex": 0,
+        "triangleCount": 48
+      },
+      "ver": "1.1.1",
+      "imported": true,
+      "files": [
+        ".bin",
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "5a9a6": {
+      "importer": "gltf-scene",
+      "uuid": "09fd8c99-34c2-4280-8367-e333cb4ca611@5a9a6",
+      "displayName": "",
+      "id": "5a9a6",
+      "name": "slot_ring.prefab",
+      "userData": {
+        "gltfIndex": 0
+      },
+      "ver": "1.0.14",
+      "imported": true,
+      "files": [
+        ".json"
+      ],
+      "subMetas": {}
+    }
+  },
+  "userData": {
+    "imageMetas": [],
+    "lods": {
+      "enable": false,
+      "hasBuiltinLOD": false,
+      "options": [
+        {
+          "screenRatio": 0.25,
+          "faceCount": 1
+        },
+        {
+          "screenRatio": 0.125,
+          "faceCount": 0.25
+        },
+        {
+          "screenRatio": 0.01,
+          "faceCount": 0.1
+        }
+      ]
+    },
+    "assetFinder": {
+      "meshes": [
+        "09fd8c99-34c2-4280-8367-e333cb4ca611@817c4"
+      ],
+      "skeletons": [],
+      "textures": [],
+      "materials": [],
+      "scenes": [
+        "09fd8c99-34c2-4280-8367-e333cb4ca611@5a9a6"
+      ]
+    }
+  }
+}

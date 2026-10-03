@@ -1,0 +1,75 @@
+{
+  "ver": "2.3.14",
+  "importer": "gltf",
+  "imported": true,
+  "uuid": "15e7c544-4f60-4bf4-a577-b86c2cf15fc7",
+  "files": [],
+  "subMetas": {
+    "67822": {
+      "importer": "gltf-scene",
+      "uuid": "15e7c544-4f60-4bf4-a577-b86c2cf15fc7@67822",
+      "displayName": "",
+      "id": "67822",
+      "name": "tree_pine.prefab",
+      "userData": {
+        "gltfIndex": 0
+      },
+      "ver": "1.0.14",
+      "imported": true,
+      "files": [
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "98935": {
+      "importer": "gltf-mesh",
+      "uuid": "15e7c544-4f60-4bf4-a577-b86c2cf15fc7@98935",
+      "displayName": "",
+      "id": "98935",
+      "name": "TreePine.mesh",
+      "userData": {
+        "gltfIndex": 0,
+        "triangleCount": 104
+      },
+      "ver": "1.1.1",
+      "imported": true,
+      "files": [
+        ".bin",
+        ".json"
+      ],
+      "subMetas": {}
+    }
+  },
+  "userData": {
+    "imageMetas": [],
+    "lods": {
+      "enable": false,
+      "hasBuiltinLOD": false,
+      "options": [
+        {
+          "screenRatio": 0.25,
+          "faceCount": 1
+        },
+        {
+          "screenRatio": 0.125,
+          "faceCount": 0.25
+        },
+        {
+          "screenRatio": 0.01,
+          "faceCount": 0.1
+        }
+      ]
+    },
+    "assetFinder": {
+      "meshes": [
+        "15e7c544-4f60-4bf4-a577-b86c2cf15fc7@98935"
+      ],
+      "skeletons": [],
+      "textures": [],
+      "materials": [],
+      "scenes": [
+        "15e7c544-4f60-4bf4-a577-b86c2cf15fc7@67822"
+      ]
+    }
+  }
+}

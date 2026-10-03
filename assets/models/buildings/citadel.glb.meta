@@ -1,0 +1,151 @@
+{
+  "ver": "2.3.14",
+  "importer": "gltf",
+  "imported": true,
+  "uuid": "48047452-39d7-4e85-bdc8-02d61222e5cd",
+  "files": [],
+  "subMetas": {
+    "34735": {
+      "importer": "gltf-mesh",
+      "uuid": "48047452-39d7-4e85-bdc8-02d61222e5cd@34735",
+      "displayName": "",
+      "id": "34735",
+      "name": "Chip2.001.mesh",
+      "userData": {
+        "gltfIndex": 1,
+        "triangleCount": 12
+      },
+      "ver": "1.1.1",
+      "imported": true,
+      "files": [
+        ".bin",
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "20f06": {
+      "importer": "gltf-mesh",
+      "uuid": "48047452-39d7-4e85-bdc8-02d61222e5cd@20f06",
+      "displayName": "",
+      "id": "20f06",
+      "name": "Chip1.001.mesh",
+      "userData": {
+        "gltfIndex": 0,
+        "triangleCount": 12
+      },
+      "ver": "1.1.1",
+      "imported": true,
+      "files": [
+        ".bin",
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "f557b": {
+      "importer": "gltf-mesh",
+      "uuid": "48047452-39d7-4e85-bdc8-02d61222e5cd@f557b",
+      "displayName": "",
+      "id": "f557b",
+      "name": "Chip3.001.mesh",
+      "userData": {
+        "gltfIndex": 2,
+        "triangleCount": 12
+      },
+      "ver": "1.1.1",
+      "imported": true,
+      "files": [
+        ".bin",
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "d4e2e": {
+      "importer": "gltf-mesh",
+      "uuid": "48047452-39d7-4e85-bdc8-02d61222e5cd@d4e2e",
+      "displayName": "",
+      "id": "d4e2e",
+      "name": "Chip4.001.mesh",
+      "userData": {
+        "gltfIndex": 3,
+        "triangleCount": 12
+      },
+      "ver": "1.1.1",
+      "imported": true,
+      "files": [
+        ".bin",
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "6fbba": {
+      "importer": "gltf-mesh",
+      "uuid": "48047452-39d7-4e85-bdc8-02d61222e5cd@6fbba",
+      "displayName": "",
+      "id": "6fbba",
+      "name": "Citadel.001.mesh",
+      "userData": {
+        "gltfIndex": 4,
+        "triangleCount": 1620
+      },
+      "ver": "1.1.1",
+      "imported": true,
+      "files": [
+        ".bin",
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "75e60": {
+      "importer": "gltf-scene",
+      "uuid": "48047452-39d7-4e85-bdc8-02d61222e5cd@75e60",
+      "displayName": "",
+      "id": "75e60",
+      "name": "citadel.prefab",
+      "userData": {
+        "gltfIndex": 0
+      },
+      "ver": "1.0.14",
+      "imported": true,
+      "files": [
+        ".json"
+      ],
+      "subMetas": {}
+    }
+  },
+  "userData": {
+    "imageMetas": [],
+    "lods": {
+      "enable": false,
+      "hasBuiltinLOD": false,
+      "options": [
+        {
+          "screenRatio": 0.25,
+          "faceCount": 1
+        },
+        {
+          "screenRatio": 0.125,
+          "faceCount": 0.25
+        },
+        {
+          "screenRatio": 0.01,
+          "faceCount": 0.1
+        }
+      ]
+    },
+    "assetFinder": {
+      "meshes": [
+        "48047452-39d7-4e85-bdc8-02d61222e5cd@20f06",
+        "48047452-39d7-4e85-bdc8-02d61222e5cd@34735",
+        "48047452-39d7-4e85-bdc8-02d61222e5cd@f557b",
+        "48047452-39d7-4e85-bdc8-02d61222e5cd@d4e2e",
+        "48047452-39d7-4e85-bdc8-02d61222e5cd@6fbba"
+      ],
+      "skeletons": [],
+      "textures": [],
+      "materials": [],
+      "scenes": [
+        "48047452-39d7-4e85-bdc8-02d61222e5cd@75e60"
+      ]
+    }
+  }
+}

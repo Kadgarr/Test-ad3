@@ -1,0 +1,75 @@
+{
+  "ver": "2.3.14",
+  "importer": "gltf",
+  "imported": true,
+  "uuid": "f684ef0f-15e7-413c-9f78-abf34c45d9f7",
+  "files": [],
+  "subMetas": {
+    "5cd2f": {
+      "importer": "gltf-mesh",
+      "uuid": "f684ef0f-15e7-413c-9f78-abf34c45d9f7@5cd2f",
+      "displayName": "",
+      "id": "5cd2f",
+      "name": "SlotBase.mesh",
+      "userData": {
+        "gltfIndex": 0,
+        "triangleCount": 12
+      },
+      "ver": "1.1.1",
+      "imported": true,
+      "files": [
+        ".bin",
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "0bb4a": {
+      "importer": "gltf-scene",
+      "uuid": "f684ef0f-15e7-413c-9f78-abf34c45d9f7@0bb4a",
+      "displayName": "",
+      "id": "0bb4a",
+      "name": "slot_base.prefab",
+      "userData": {
+        "gltfIndex": 0
+      },
+      "ver": "1.0.14",
+      "imported": true,
+      "files": [
+        ".json"
+      ],
+      "subMetas": {}
+    }
+  },
+  "userData": {
+    "imageMetas": [],
+    "lods": {
+      "enable": false,
+      "hasBuiltinLOD": false,
+      "options": [
+        {
+          "screenRatio": 0.25,
+          "faceCount": 1
+        },
+        {
+          "screenRatio": 0.125,
+          "faceCount": 0.25
+        },
+        {
+          "screenRatio": 0.01,
+          "faceCount": 0.1
+        }
+      ]
+    },
+    "assetFinder": {
+      "meshes": [
+        "f684ef0f-15e7-413c-9f78-abf34c45d9f7@5cd2f"
+      ],
+      "skeletons": [],
+      "textures": [],
+      "materials": [],
+      "scenes": [
+        "f684ef0f-15e7-413c-9f78-abf34c45d9f7@0bb4a"
+      ]
+    }
+  }
+}

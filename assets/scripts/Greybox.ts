@@ -1,5 +1,6 @@
 // Greybox visuals built from engine primitives. Replaced by Blender prefabs in Stage 2.
 import { Color, Material, Mesh, MeshRenderer, Node, primitives, utils } from 'cc';
+import { spawnModel } from './Models';
 
 const meshCache: { [k: string]: Mesh } = {};
 const matCache: { [k: string]: Material } = {};
@@ -93,6 +94,8 @@ function wing(parent: Node, name: string, x: number, hex: string, len: number) {
 
 // Units are modelled facing -Z; LaneSim yaws them toward the enemy.
 export function unitLook(id: string): Node {
+    const m = spawnModel(id);
+    if (m) return m;
     const n = new Node('U_' + id);
     switch (id) {
         case 'footman':
@@ -162,6 +165,8 @@ export function unitLook(id: string): Node {
 }
 
 export function buildingLook(id: string): Node {
+    const m = spawnModel(id);
+    if (m) return m;
     const n = new Node('B_' + id);
     switch (id) {
         case 'archery':
@@ -220,6 +225,8 @@ export function buildingLook(id: string): Node {
 }
 
 export function castleLook(side: number): Node {
+    const m = spawnModel(side === 0 ? 'citadel' : 'fortress');
+    if (m) return m;
     const n = new Node(side === 0 ? 'Citadel' : 'Fortress');
     const corners = [[-1.6, -2], [1.6, -2], [-1.6, 2], [1.6, 2]];
     if (side === 0) {
@@ -289,6 +296,20 @@ export function slotRing(parent: Node, x: number, z: number): Node {
 function fenceLine(parent: Node, x1: number, z1: number, x2: number, z2: number) {
     const dx = x2 - x1, dz = z2 - z1;
     const len = Math.sqrt(dx * dx + dz * dz);
+    const probe = spawnModel('fence');
+    if (probe) {                       // 2 m fence sections stretched to fill the line exactly
+        const n = Math.max(1, Math.round(len / 2));
+        const yaw = -Math.atan2(dz, dx) * 180 / Math.PI;
+        for (let i = 0; i < n; i++) {
+            const f = i === 0 ? probe : spawnModel('fence');
+            parent.addChild(f);
+            const t = (i + 0.5) / n;
+            f.setPosition(x1 + dx * t, 0, z1 + dz * t);
+            f.setRotationFromEuler(0, yaw, 0);
+            f.setScale(len / n / 2, 1, 1);
+        }
+        return;
+    }
     const rot = Math.atan2(dx, dz) * 180 / Math.PI;
     const cx = (x1 + x2) / 2, cz = (z1 + z2) / 2;
     part(parent, 'box', '#9a6a3a', [cx, 0.3, cz], [0.07, 0.08, len], rot);
@@ -314,17 +335,23 @@ export function baseFences(parent: Node, side: number) {
     fenceLine(f, s * inner, -gap, s * inner, -zo);
 }
 
-function lake(parent: Node, x: number, z: number, w: number, l: number) {
+function lake(parent: Node, x: number, z: number, w: number, l: number, model = 'lake_a', yaw = 0, s = 0.85) {
+    const m = spawnModel(model);
+    if (m) { parent.addChild(m); m.setPosition(x, 0, z); m.setRotationFromEuler(0, yaw, 0); m.setScale(s, 1, s); return; }
     part(parent, 'cyl', '#c9b27a', [x, 0.012, z], [w + 0.7, 0.02, l + 0.7]);
     part(parent, 'cyl', '#3f8fd8', [x, 0.03, z], [w, 0.02, l]);
 }
 
 function rock(parent: Node, x: number, z: number, s: number, rot: number) {
+    const m = spawnModel(s > 0.6 ? 'rock_a' : 'rock_b');
+    if (m) { parent.addChild(m); m.setPosition(x, 0, z); m.setRotationFromEuler(0, rot, 0); m.setScale(s * 1.4, s * 1.4, s * 1.4); return; }
     part(parent, 'box', '#8c9098', [x, s * 0.35, z], [s, s * 0.7, s * 0.85], rot);
     part(parent, 'box', '#a3a7ae', [x + s * 0.2, s * 0.75, z - s * 0.1], [s * 0.55, s * 0.4, s * 0.5], rot + 20);
 }
 
 function cliff(parent: Node, x: number, z: number, s: number) {
+    const m = spawnModel(s >= 1 ? 'cliff_a' : 'cliff_b');
+    if (m) { parent.addChild(m); m.setPosition(x, 0, z); m.setRotationFromEuler(0, s * 37, 0); m.setScale(s * 0.85, s * 0.85, s * 0.85); return; }
     // rock body + darker moss caps so the plateau reads against the grass from a top-down camera
     part(parent, 'box', '#7a7f87', [x, 0.7 * s, z], [3.2 * s, 1.4 * s, 1.8 * s], 8);
     part(parent, 'box', '#a7abb2', [x, 1.43 * s, z], [3.0 * s, 0.08 * s, 1.6 * s], 8);
@@ -338,12 +365,12 @@ function cliff(parent: Node, x: number, z: number, s: number) {
 export function landmarks(parent: Node) {
     const l = new Node('Landmarks');
     parent.addChild(l);
-    lake(l, 0, 4.6, 4.2, 2.2);
+    lake(l, 0, 4.6, 4.2, 2.2, 'lake_a', 0, 0.85);
     cliff(l, 0, -4.9, 0.9);
     rock(l, -1.6, 3.2, 0.55, 15);
     rock(l, 1.9, -3.3, 0.5, 40);
-    lake(l, -18, 5.5, 5, 3);
-    lake(l, 17, -8.5, 4, 2.5);
+    lake(l, -18, 5.5, 5, 3, 'lake_b', 20, 1.1);
+    lake(l, 17, -8.5, 4, 2.5, 'lake_c', -15, 1.0);
     cliff(l, -6, -9.6, 1.2);
     cliff(l, 7, 9.4, 1.0);
     rock(l, 15.6, 6.8, 0.8, 10);
@@ -352,6 +379,8 @@ export function landmarks(parent: Node) {
 
 function tree(parent: Node, x: number, z: number, r: number) {
     const s = 0.8 + r * 0.6;
+    const m = spawnModel(r > 0.55 ? 'tree_pine' : (r > 0.18 ? 'tree_round' : 'bush'));
+    if (m) { parent.addChild(m); m.setPosition(x, 0, z); m.setRotationFromEuler(0, r * 360, 0); m.setScale(s, s, s); return; }
     part(parent, 'cyl', '#6b4a2e', [x, 0.4 * s, z], [0.3 * s, 0.8 * s, 0.3 * s]);
     if (r > 0.5) part(parent, 'cone', '#2f8f3a', [x, 1.5 * s, z], [1.4 * s, 1.8 * s, 1.4 * s]);
     else part(parent, 'box', '#3aa046', [x, 1.3 * s, z], [1.2 * s, 1.2 * s, 1.2 * s]);
@@ -372,6 +401,6 @@ export function decor(parent: Node) {
     }
     for (let i = 0; i < 8; i++) {
         const s = 0.4 + rnd() * 0.5;
-        part(d, 'box', '#9a9ea6', [-12 + rnd() * 24, s * 0.4, (i % 2 ? 1 : -1) * (6.6 + rnd())], [s, s * 0.8, s * 1.2], rnd() * 90);
+        rock(d, -12 + rnd() * 24, (i % 2 ? 1 : -1) * (6.6 + rnd()), s, rnd() * 90);
     }
 }

@@ -1,0 +1,151 @@
+{
+  "ver": "2.3.14",
+  "importer": "gltf",
+  "imported": true,
+  "uuid": "ac5af142-5515-4529-b4a2-1f0b89c86d25",
+  "files": [],
+  "subMetas": {
+    "94e3a": {
+      "importer": "gltf-mesh",
+      "uuid": "ac5af142-5515-4529-b4a2-1f0b89c86d25@94e3a",
+      "displayName": "",
+      "id": "94e3a",
+      "name": "ArmL.010.mesh",
+      "userData": {
+        "gltfIndex": 0,
+        "triangleCount": 132
+      },
+      "ver": "1.1.1",
+      "imported": true,
+      "files": [
+        ".bin",
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "fb373": {
+      "importer": "gltf-mesh",
+      "uuid": "ac5af142-5515-4529-b4a2-1f0b89c86d25@fb373",
+      "displayName": "",
+      "id": "fb373",
+      "name": "ArmR.009.mesh",
+      "userData": {
+        "gltfIndex": 1,
+        "triangleCount": 132
+      },
+      "ver": "1.1.1",
+      "imported": true,
+      "files": [
+        ".bin",
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "b0281": {
+      "importer": "gltf-mesh",
+      "uuid": "ac5af142-5515-4529-b4a2-1f0b89c86d25@b0281",
+      "displayName": "",
+      "id": "b0281",
+      "name": "LegL.008.mesh",
+      "userData": {
+        "gltfIndex": 2,
+        "triangleCount": 88
+      },
+      "ver": "1.1.1",
+      "imported": true,
+      "files": [
+        ".bin",
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "3e47a": {
+      "importer": "gltf-mesh",
+      "uuid": "ac5af142-5515-4529-b4a2-1f0b89c86d25@3e47a",
+      "displayName": "",
+      "id": "3e47a",
+      "name": "LegR.008.mesh",
+      "userData": {
+        "gltfIndex": 3,
+        "triangleCount": 88
+      },
+      "ver": "1.1.1",
+      "imported": true,
+      "files": [
+        ".bin",
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "bc3d1": {
+      "importer": "gltf-mesh",
+      "uuid": "ac5af142-5515-4529-b4a2-1f0b89c86d25@bc3d1",
+      "displayName": "",
+      "id": "bc3d1",
+      "name": "Body.008.mesh",
+      "userData": {
+        "gltfIndex": 4,
+        "triangleCount": 376
+      },
+      "ver": "1.1.1",
+      "imported": true,
+      "files": [
+        ".bin",
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "2214f": {
+      "importer": "gltf-scene",
+      "uuid": "ac5af142-5515-4529-b4a2-1f0b89c86d25@2214f",
+      "displayName": "",
+      "id": "2214f",
+      "name": "golem.prefab",
+      "userData": {
+        "gltfIndex": 0
+      },
+      "ver": "1.0.14",
+      "imported": true,
+      "files": [
+        ".json"
+      ],
+      "subMetas": {}
+    }
+  },
+  "userData": {
+    "imageMetas": [],
+    "lods": {
+      "enable": false,
+      "hasBuiltinLOD": false,
+      "options": [
+        {
+          "screenRatio": 0.25,
+          "faceCount": 1
+        },
+        {
+          "screenRatio": 0.125,
+          "faceCount": 0.25
+        },
+        {
+          "screenRatio": 0.01,
+          "faceCount": 0.1
+        }
+      ]
+    },
+    "assetFinder": {
+      "meshes": [
+        "ac5af142-5515-4529-b4a2-1f0b89c86d25@94e3a",
+        "ac5af142-5515-4529-b4a2-1f0b89c86d25@fb373",
+        "ac5af142-5515-4529-b4a2-1f0b89c86d25@b0281",
+        "ac5af142-5515-4529-b4a2-1f0b89c86d25@3e47a",
+        "ac5af142-5515-4529-b4a2-1f0b89c86d25@bc3d1"
+      ],
+      "skeletons": [],
+      "textures": [],
+      "materials": [],
+      "scenes": [
+        "ac5af142-5515-4529-b4a2-1f0b89c86d25@2214f"
+      ]
+    }
+  }
+}

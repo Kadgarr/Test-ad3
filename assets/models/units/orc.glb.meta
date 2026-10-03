@@ -1,0 +1,151 @@
+{
+  "ver": "2.3.14",
+  "importer": "gltf",
+  "imported": true,
+  "uuid": "b3b74c56-e11d-4cdd-a8a3-037002f17d96",
+  "files": [],
+  "subMetas": {
+    "82678": {
+      "importer": "gltf-mesh",
+      "uuid": "b3b74c56-e11d-4cdd-a8a3-037002f17d96@82678",
+      "displayName": "",
+      "id": "82678",
+      "name": "ArmR.008.mesh",
+      "userData": {
+        "gltfIndex": 1,
+        "triangleCount": 132
+      },
+      "ver": "1.1.1",
+      "imported": true,
+      "files": [
+        ".bin",
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "8d6b1": {
+      "importer": "gltf-mesh",
+      "uuid": "b3b74c56-e11d-4cdd-a8a3-037002f17d96@8d6b1",
+      "displayName": "",
+      "id": "8d6b1",
+      "name": "ArmL.008.mesh",
+      "userData": {
+        "gltfIndex": 0,
+        "triangleCount": 100
+      },
+      "ver": "1.1.1",
+      "imported": true,
+      "files": [
+        ".bin",
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "5c9d7": {
+      "importer": "gltf-mesh",
+      "uuid": "b3b74c56-e11d-4cdd-a8a3-037002f17d96@5c9d7",
+      "displayName": "",
+      "id": "5c9d7",
+      "name": "LegL.007.mesh",
+      "userData": {
+        "gltfIndex": 2,
+        "triangleCount": 88
+      },
+      "ver": "1.1.1",
+      "imported": true,
+      "files": [
+        ".bin",
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "3fa08": {
+      "importer": "gltf-mesh",
+      "uuid": "b3b74c56-e11d-4cdd-a8a3-037002f17d96@3fa08",
+      "displayName": "",
+      "id": "3fa08",
+      "name": "LegR.007.mesh",
+      "userData": {
+        "gltfIndex": 3,
+        "triangleCount": 88
+      },
+      "ver": "1.1.1",
+      "imported": true,
+      "files": [
+        ".bin",
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "59b69": {
+      "importer": "gltf-mesh",
+      "uuid": "b3b74c56-e11d-4cdd-a8a3-037002f17d96@59b69",
+      "displayName": "",
+      "id": "59b69",
+      "name": "Body.007.mesh",
+      "userData": {
+        "gltfIndex": 4,
+        "triangleCount": 276
+      },
+      "ver": "1.1.1",
+      "imported": true,
+      "files": [
+        ".bin",
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "e0b2a": {
+      "importer": "gltf-scene",
+      "uuid": "b3b74c56-e11d-4cdd-a8a3-037002f17d96@e0b2a",
+      "displayName": "",
+      "id": "e0b2a",
+      "name": "orc.prefab",
+      "userData": {
+        "gltfIndex": 0
+      },
+      "ver": "1.0.14",
+      "imported": true,
+      "files": [
+        ".json"
+      ],
+      "subMetas": {}
+    }
+  },
+  "userData": {
+    "imageMetas": [],
+    "lods": {
+      "enable": false,
+      "hasBuiltinLOD": false,
+      "options": [
+        {
+          "screenRatio": 0.25,
+          "faceCount": 1
+        },
+        {
+          "screenRatio": 0.125,
+          "faceCount": 0.25
+        },
+        {
+          "screenRatio": 0.01,
+          "faceCount": 0.1
+        }
+      ]
+    },
+    "assetFinder": {
+      "meshes": [
+        "b3b74c56-e11d-4cdd-a8a3-037002f17d96@8d6b1",
+        "b3b74c56-e11d-4cdd-a8a3-037002f17d96@82678",
+        "b3b74c56-e11d-4cdd-a8a3-037002f17d96@5c9d7",
+        "b3b74c56-e11d-4cdd-a8a3-037002f17d96@3fa08",
+        "b3b74c56-e11d-4cdd-a8a3-037002f17d96@59b69"
+      ],
+      "skeletons": [],
+      "textures": [],
+      "materials": [],
+      "scenes": [
+        "b3b74c56-e11d-4cdd-a8a3-037002f17d96@e0b2a"
+      ]
+    }
+  }
+}

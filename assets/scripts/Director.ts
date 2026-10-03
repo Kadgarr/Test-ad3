@@ -1,7 +1,8 @@
 // Scenario state machine. Event-driven: reacts to GameEvents (castle HP, unit spawn/death)
 // and to state timers (scheduleOnce with an epoch guard). It also owns the single game tick:
 // update() only scales time, steps LaneSim, debris and world tags — no polling of game state.
-import { _decorator, Component, Node, Camera, Color, Layers, DirectionalLight, Material, director, Vec3, tween, Tween, view, ResolutionPolicy } from 'cc';
+import { _decorator, Component, Node, Camera, Color, Layers, DirectionalLight, Material, Prefab, director, Vec3, tween, Tween, view, ResolutionPolicy } from 'cc';
+import { registerModels, spawnModel, meshLeaves } from './Models';
 import { PLAYER, ENEMY, LAYOUT, TIMING, CHOICES, BUILDINGS, UNITS } from './Config';
 import { Pool, buildingLook, castleLook, ground, decor, slotBase, slotRing, fxLook, setBaseMaterials, baseFences, landmarks } from './Greybox';
 import { LaneSim, Castle, Spawner, Unit } from './LaneSim';
@@ -12,7 +13,13 @@ import { AdAdapter } from './AdAdapter';
 import { GameEvents, EV } from './Events';
 const { ccclass, property } = _decorator;
 
-interface SlotView { side: number; pos: Vec3; ring: Node; building: Node; spawner: Spawner; }
+interface SlotView { side: number; pos: Vec3; ring: Node; building: Node; buildingId?: string; spawner: Spawner; }
+
+// Facade yaw toward the camera. Models face -Z (Blender +Y); the archery range is modelled
+// with its targets on +X. Landscape camera looks from +Z, portrait camera from -X.
+function facadeYaw(id: string, portrait: boolean): number {
+    return (id === 'archery' ? -90 : 180) + (portrait ? -90 : 0);
+}
 
 type State = 'BOOT' | 'INTRO' | 'CHOICE' | 'WRONG' | 'BATTLE_1' | 'LAIR' | 'THREAT_2'
     | 'BATTLE_2' | 'NEST' | 'BOSS' | 'BATTLE_3' | 'FINALE' | 'END' | 'FAIL';
@@ -28,6 +35,12 @@ export class Director extends Component {
 
     @property({ type: Material, tooltip: 'Unlit material for FX and glowing parts (builtin-unlit)' })
     unlitMaterial: Material = null;
+
+    @property({ type: Material, tooltip: 'Shared palette material for all Blender models (GPU instancing)' })
+    paletteMaterial: Material = null;
+
+    @property({ type: [Prefab], tooltip: 'glb model prefabs; matched to units/buildings by prefab name' })
+    modelPrefabs: Prefab[] = [];
 
     @property({ tooltip: 'Log state transitions to the console' })
     logStates = true;
@@ -69,10 +82,15 @@ export class Director extends Component {
             return;
         }
         setBaseMaterials(this.litMaterial, this.unlitMaterial);
+        registerModels(this.modelPrefabs, this.paletteMaterial);
         const scene = director.getScene();
         this.setupView(scene);
-        this.world = new Node('World');
-        scene.addChild(this.world);
+        // The static arena is authored in Main.scene under 'World'; units and buildings are added to it at runtime.
+        this.world = scene.getChildByName('World');
+        if (!this.world) {
+            this.world = new Node('World');
+            scene.addChild(this.world);
+        }
         this.pool = new Pool(this.world);
         this.sim = new LaneSim(this.pool);
         this.buildArena();
@@ -144,7 +162,7 @@ export class Director extends Component {
         if (!scene.getComponentInChildren(DirectionalLight)) {
             const l = new Node('Sun');
             scene.addChild(l);
-            l.setRotationFromEuler(-55, 35, 0);
+            l.setRotationFromEuler(-50, -60, 0);   // fallback only: the scene's Sun node is the source of truth
             l.addComponent(DirectionalLight);
         }
         const camNode = new Node('MainCamera');
@@ -162,6 +180,8 @@ export class Director extends Component {
     }
 
     private buildArena() {
+        if (this.useSceneArena()) return;
+        // Fallback: no authored arena in the scene — build the same layout from code.
         ground(this.world);
         baseFences(this.world, PLAYER);
         baseFences(this.world, ENEMY);
@@ -170,13 +190,37 @@ export class Director extends Component {
         const pc = castleLook(PLAYER);
         this.world.addChild(pc);
         pc.setPosition(-LAYOUT.castleX, 0, 0);
+        pc.setRotationFromEuler(0, -90, 0);   // gate faces the lane / enemy (+X)
         const ec = castleLook(ENEMY);
         this.world.addChild(ec);
         ec.setPosition(LAYOUT.castleX, 0, 0);
+        ec.setRotationFromEuler(0, 90, 0);    // gate faces -X
         this.pCastle = new Castle(PLAYER, -LAYOUT.castleX, TIMING.castleHp, pc);
         this.eCastle = new Castle(ENEMY, LAYOUT.castleX, TIMING.castleHp, ec);
         for (const s of LAYOUT.playerSlots) this.pSlots.push(this.makeSlot(PLAYER, s[0], s[1]));
         for (const s of LAYOUT.enemySlots) this.eSlots.push(this.makeSlot(ENEMY, s[0], s[1]));
+    }
+
+    // Authored arena: World/Castle_Alliance, World/Castle_Orcs,
+    // World/Slots_Alliance|Slots_Orcs/Slot_N (each with a SlotRing child). Move them freely in the editor.
+    private useSceneArena(): boolean {
+        const w = this.world;
+        const pc = w.getChildByName('Castle_Alliance');
+        const ec = w.getChildByName('Castle_Orcs');
+        const ps = w.getChildByName('Slots_Alliance');
+        const es = w.getChildByName('Slots_Orcs');
+        if (!pc || !ec || !ps || !es) return false;
+        this.pCastle = new Castle(PLAYER, pc.position.x, TIMING.castleHp, pc);
+        this.eCastle = new Castle(ENEMY, ec.position.x, TIMING.castleHp, ec);
+        for (const s of ps.children) this.pSlots.push(this.sceneSlot(PLAYER, s));
+        for (const s of es.children) this.eSlots.push(this.sceneSlot(ENEMY, s));
+        return true;
+    }
+
+    private sceneSlot(side: number, n: Node): SlotView {
+        const ring = n.getChildByName('SlotRing');
+        if (ring) ring.active = false;
+        return { side, pos: n.worldPosition.clone(), ring, building: null, spawner: null };
     }
 
     private makeSlot(side: number, x: number, z: number): SlotView {
@@ -191,6 +235,9 @@ export class Director extends Component {
             this.portrait = portrait;
             if (portrait) view.setDesignResolutionSize(720, 1280, ResolutionPolicy.FIXED_WIDTH);
             else view.setDesignResolutionSize(1280, 720, ResolutionPolicy.FIXED_HEIGHT);
+        }
+        for (const s of this.pSlots.concat(this.eSlots)) {
+            if (s.building && s.buildingId) s.building.setRotationFromEuler(0, facadeYaw(s.buildingId, portrait), 0);
         }
         if (this.hud) this.hud.layout();
     }
@@ -257,6 +304,8 @@ export class Director extends Component {
         const b = buildingLook(id);
         this.world.addChild(b);
         b.setPosition(slot.pos);
+        slot.buildingId = id;
+        b.setRotationFromEuler(0, facadeYaw(id, !!this.portrait), 0);   // facade toward the screen
         if (anim) {
             b.setScale(0.05, 0.05, 0.05);
             tween(b).to(0.35, { scale: ONE }, { easing: 'backOut' }).start();
@@ -284,6 +333,7 @@ export class Director extends Component {
         if (slot.spawner) slot.spawner.active = false;
         const b = slot.building;
         slot.building = null;
+        slot.buildingId = null;
         slot.spawner = null;
         if (b) tween(b).to(0.25, { scale: new Vec3(0.05, 0.05, 0.05) }).call(() => b.destroy()).start();
     }
@@ -505,7 +555,19 @@ export class Director extends Component {
         const n = this.eCastle.node;
         const p = n.getPosition();
         n.active = false;
-        this.destruction.run(this.world, p, new Vec3(4, 3.5, 4.6), ['#7b2d26', '#5e221d', '#c8342b', '#6b4a2e'], 90);
+        const pieces = spawnModel('fortress_pieces');
+        if (pieces) {
+            this.world.addChild(pieces);
+            pieces.setPosition(p);
+            pieces.setRotation(n.rotation);
+            const leaves = meshLeaves(pieces);
+            for (const leaf of leaves) leaf.setParent(this.world, true);   // keep world transform
+            pieces.destroy();
+            this.destruction.runPieces(leaves, p);
+            this.destruction.run(this.world, p, new Vec3(4, 3, 4.6), ['#7b2d26', '#5e221d', '#c8342b', '#6b4a2e'], 40);
+        } else {
+            this.destruction.run(this.world, p, new Vec3(4, 3.5, 4.6), ['#7b2d26', '#5e221d', '#c8342b', '#6b4a2e'], 90);
+        }
         this.rig.shake(0.6, 0.8);
         this.rig.zoomTo(1.15, 1.2);
     }

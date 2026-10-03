@@ -1,0 +1,75 @@
+{
+  "ver": "2.3.14",
+  "importer": "gltf",
+  "imported": true,
+  "uuid": "68025e7e-62d9-425e-b1c6-888486515cc0",
+  "files": [],
+  "subMetas": {
+    "5f0b3": {
+      "importer": "gltf-mesh",
+      "uuid": "68025e7e-62d9-425e-b1c6-888486515cc0@5f0b3",
+      "displayName": "",
+      "id": "5f0b3",
+      "name": "RockA.mesh",
+      "userData": {
+        "gltfIndex": 0,
+        "triangleCount": 100
+      },
+      "ver": "1.1.1",
+      "imported": true,
+      "files": [
+        ".bin",
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "6092a": {
+      "importer": "gltf-scene",
+      "uuid": "68025e7e-62d9-425e-b1c6-888486515cc0@6092a",
+      "displayName": "",
+      "id": "6092a",
+      "name": "rock_a.prefab",
+      "userData": {
+        "gltfIndex": 0
+      },
+      "ver": "1.0.14",
+      "imported": true,
+      "files": [
+        ".json"
+      ],
+      "subMetas": {}
+    }
+  },
+  "userData": {
+    "imageMetas": [],
+    "lods": {
+      "enable": false,
+      "hasBuiltinLOD": false,
+      "options": [
+        {
+          "screenRatio": 0.25,
+          "faceCount": 1
+        },
+        {
+          "screenRatio": 0.125,
+          "faceCount": 0.25
+        },
+        {
+          "screenRatio": 0.01,
+          "faceCount": 0.1
+        }
+      ]
+    },
+    "assetFinder": {
+      "meshes": [
+        "68025e7e-62d9-425e-b1c6-888486515cc0@5f0b3"
+      ],
+      "skeletons": [],
+      "textures": [],
+      "materials": [],
+      "scenes": [
+        "68025e7e-62d9-425e-b1c6-888486515cc0@6092a"
+      ]
+    }
+  }
+}

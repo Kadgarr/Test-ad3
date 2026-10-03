@@ -1,0 +1,75 @@
+{
+  "ver": "2.3.14",
+  "importer": "gltf",
+  "imported": true,
+  "uuid": "fd2e670b-ee48-4cf8-bf4f-7a036d73581f",
+  "files": [],
+  "subMetas": {
+    "2f2c4": {
+      "importer": "gltf-mesh",
+      "uuid": "fd2e670b-ee48-4cf8-bf4f-7a036d73581f@2f2c4",
+      "displayName": "",
+      "id": "2f2c4",
+      "name": "DragonNest.mesh",
+      "userData": {
+        "gltfIndex": 0,
+        "triangleCount": 448
+      },
+      "ver": "1.1.1",
+      "imported": true,
+      "files": [
+        ".bin",
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "8402a": {
+      "importer": "gltf-scene",
+      "uuid": "fd2e670b-ee48-4cf8-bf4f-7a036d73581f@8402a",
+      "displayName": "",
+      "id": "8402a",
+      "name": "dragon_nest.prefab",
+      "userData": {
+        "gltfIndex": 0
+      },
+      "ver": "1.0.14",
+      "imported": true,
+      "files": [
+        ".json"
+      ],
+      "subMetas": {}
+    }
+  },
+  "userData": {
+    "imageMetas": [],
+    "lods": {
+      "enable": false,
+      "hasBuiltinLOD": false,
+      "options": [
+        {
+          "screenRatio": 0.25,
+          "faceCount": 1
+        },
+        {
+          "screenRatio": 0.125,
+          "faceCount": 0.25
+        },
+        {
+          "screenRatio": 0.01,
+          "faceCount": 0.1
+        }
+      ]
+    },
+    "assetFinder": {
+      "meshes": [
+        "fd2e670b-ee48-4cf8-bf4f-7a036d73581f@2f2c4"
+      ],
+      "skeletons": [],
+      "textures": [],
+      "materials": [],
+      "scenes": [
+        "fd2e670b-ee48-4cf8-bf4f-7a036d73581f@8402a"
+      ]
+    }
+  }
+}

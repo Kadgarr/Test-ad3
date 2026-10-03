@@ -4,6 +4,7 @@ import { Node, Vec3, tween, Tween } from 'cc';
 import { UnitDef, UNITS, DMG_MULT, PLAYER, ENEMY, LAYOUT, DmgType } from './Config';
 import { Pool, unitLook, projLook } from './Greybox';
 import { GameEvents, EV } from './Events';
+import { findByPrefix } from './Models';
 
 export class Unit {
     def: UnitDef = null;
@@ -100,8 +101,8 @@ export class LaneSim {
         const nd: any = u.node;
         if (!nd.__wings) {
             nd.__wings = [];
-            const wl = u.node.getChildByName('wingL');
-            const wr = u.node.getChildByName('wingR');
+            const wl = findByPrefix(u.node, 'wingL');
+            const wr = findByPrefix(u.node, 'wingR');
             if (wl) nd.__wings.push(wl);
             if (wr) nd.__wings.push(wr);
         }

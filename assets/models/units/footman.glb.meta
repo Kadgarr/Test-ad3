@@ -1,0 +1,151 @@
+{
+  "ver": "2.3.14",
+  "importer": "gltf",
+  "imported": true,
+  "uuid": "99c8374c-2fea-42dc-96c4-060e36654e11",
+  "files": [],
+  "subMetas": {
+    "25826": {
+      "importer": "gltf-mesh",
+      "uuid": "99c8374c-2fea-42dc-96c4-060e36654e11@25826",
+      "displayName": "",
+      "id": "25826",
+      "name": "ArmR.004.mesh",
+      "userData": {
+        "gltfIndex": 1,
+        "triangleCount": 176
+      },
+      "ver": "1.1.1",
+      "imported": true,
+      "files": [
+        ".bin",
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "1bd27": {
+      "importer": "gltf-mesh",
+      "uuid": "99c8374c-2fea-42dc-96c4-060e36654e11@1bd27",
+      "displayName": "",
+      "id": "1bd27",
+      "name": "ArmL.004.mesh",
+      "userData": {
+        "gltfIndex": 0,
+        "triangleCount": 120
+      },
+      "ver": "1.1.1",
+      "imported": true,
+      "files": [
+        ".bin",
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "fc0bd": {
+      "importer": "gltf-mesh",
+      "uuid": "99c8374c-2fea-42dc-96c4-060e36654e11@fc0bd",
+      "displayName": "",
+      "id": "fc0bd",
+      "name": "LegL.003.mesh",
+      "userData": {
+        "gltfIndex": 2,
+        "triangleCount": 56
+      },
+      "ver": "1.1.1",
+      "imported": true,
+      "files": [
+        ".bin",
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "a8518": {
+      "importer": "gltf-mesh",
+      "uuid": "99c8374c-2fea-42dc-96c4-060e36654e11@a8518",
+      "displayName": "",
+      "id": "a8518",
+      "name": "LegR.003.mesh",
+      "userData": {
+        "gltfIndex": 3,
+        "triangleCount": 56
+      },
+      "ver": "1.1.1",
+      "imported": true,
+      "files": [
+        ".bin",
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "c2087": {
+      "importer": "gltf-mesh",
+      "uuid": "99c8374c-2fea-42dc-96c4-060e36654e11@c2087",
+      "displayName": "",
+      "id": "c2087",
+      "name": "Body.003.mesh",
+      "userData": {
+        "gltfIndex": 4,
+        "triangleCount": 348
+      },
+      "ver": "1.1.1",
+      "imported": true,
+      "files": [
+        ".bin",
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "5feb9": {
+      "importer": "gltf-scene",
+      "uuid": "99c8374c-2fea-42dc-96c4-060e36654e11@5feb9",
+      "displayName": "",
+      "id": "5feb9",
+      "name": "footman.prefab",
+      "userData": {
+        "gltfIndex": 0
+      },
+      "ver": "1.0.14",
+      "imported": true,
+      "files": [
+        ".json"
+      ],
+      "subMetas": {}
+    }
+  },
+  "userData": {
+    "imageMetas": [],
+    "lods": {
+      "enable": false,
+      "hasBuiltinLOD": false,
+      "options": [
+        {
+          "screenRatio": 0.25,
+          "faceCount": 1
+        },
+        {
+          "screenRatio": 0.125,
+          "faceCount": 0.25
+        },
+        {
+          "screenRatio": 0.01,
+          "faceCount": 0.1
+        }
+      ]
+    },
+    "assetFinder": {
+      "meshes": [
+        "99c8374c-2fea-42dc-96c4-060e36654e11@1bd27",
+        "99c8374c-2fea-42dc-96c4-060e36654e11@25826",
+        "99c8374c-2fea-42dc-96c4-060e36654e11@fc0bd",
+        "99c8374c-2fea-42dc-96c4-060e36654e11@a8518",
+        "99c8374c-2fea-42dc-96c4-060e36654e11@c2087"
+      ],
+      "skeletons": [],
+      "textures": [],
+      "materials": [],
+      "scenes": [
+        "99c8374c-2fea-42dc-96c4-060e36654e11@5feb9"
+      ]
+    }
+  }
+}

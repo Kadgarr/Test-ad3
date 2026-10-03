@@ -1,0 +1,360 @@
+{
+  "ver": "2.3.14",
+  "importer": "gltf",
+  "imported": true,
+  "uuid": "3e3da077-355e-4772-bbf5-f7cc8e8f2c6e",
+  "files": [],
+  "subMetas": {
+    "11757": {
+      "importer": "gltf-mesh",
+      "uuid": "3e3da077-355e-4772-bbf5-f7cc8e8f2c6e@11757",
+      "displayName": "",
+      "id": "11757",
+      "name": "F_PalFrontR.mesh",
+      "userData": {
+        "gltfIndex": 10,
+        "triangleCount": 108
+      },
+      "ver": "1.1.1",
+      "imported": true,
+      "files": [
+        ".bin",
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "66961": {
+      "importer": "gltf-mesh",
+      "uuid": "3e3da077-355e-4772-bbf5-f7cc8e8f2c6e@66961",
+      "displayName": "",
+      "id": "66961",
+      "name": "F_Base.mesh",
+      "userData": {
+        "gltfIndex": 0,
+        "triangleCount": 56
+      },
+      "ver": "1.1.1",
+      "imported": true,
+      "files": [
+        ".bin",
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "1189f": {
+      "importer": "gltf-mesh",
+      "uuid": "3e3da077-355e-4772-bbf5-f7cc8e8f2c6e@1189f",
+      "displayName": "",
+      "id": "1189f",
+      "name": "F_Brazier.mesh",
+      "userData": {
+        "gltfIndex": 1,
+        "triangleCount": 32
+      },
+      "ver": "1.1.1",
+      "imported": true,
+      "files": [
+        ".bin",
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "ddfd7": {
+      "importer": "gltf-mesh",
+      "uuid": "3e3da077-355e-4772-bbf5-f7cc8e8f2c6e@ddfd7",
+      "displayName": "",
+      "id": "ddfd7",
+      "name": "F_Gate.mesh",
+      "userData": {
+        "gltfIndex": 2,
+        "triangleCount": 304
+      },
+      "ver": "1.1.1",
+      "imported": true,
+      "files": [
+        ".bin",
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "0e810": {
+      "importer": "gltf-mesh",
+      "uuid": "3e3da077-355e-4772-bbf5-f7cc8e8f2c6e@0e810",
+      "displayName": "",
+      "id": "0e810",
+      "name": "F_Hut.mesh",
+      "userData": {
+        "gltfIndex": 3,
+        "triangleCount": 56
+      },
+      "ver": "1.1.1",
+      "imported": true,
+      "files": [
+        ".bin",
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "65d1d": {
+      "importer": "gltf-mesh",
+      "uuid": "3e3da077-355e-4772-bbf5-f7cc8e8f2c6e@65d1d",
+      "displayName": "",
+      "id": "65d1d",
+      "name": "F_HutRoof.mesh",
+      "userData": {
+        "gltfIndex": 4,
+        "triangleCount": 8
+      },
+      "ver": "1.1.1",
+      "imported": true,
+      "files": [
+        ".bin",
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "47b4c": {
+      "importer": "gltf-mesh",
+      "uuid": "3e3da077-355e-4772-bbf5-f7cc8e8f2c6e@47b4c",
+      "displayName": "",
+      "id": "47b4c",
+      "name": "F_Keep.mesh",
+      "userData": {
+        "gltfIndex": 5,
+        "triangleCount": 128
+      },
+      "ver": "1.1.1",
+      "imported": true,
+      "files": [
+        ".bin",
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "6aa0b": {
+      "importer": "gltf-mesh",
+      "uuid": "3e3da077-355e-4772-bbf5-f7cc8e8f2c6e@6aa0b",
+      "displayName": "",
+      "id": "6aa0b",
+      "name": "F_KeepTop.mesh",
+      "userData": {
+        "gltfIndex": 6,
+        "triangleCount": 92
+      },
+      "ver": "1.1.1",
+      "imported": true,
+      "files": [
+        ".bin",
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "3b860": {
+      "importer": "gltf-mesh",
+      "uuid": "3e3da077-355e-4772-bbf5-f7cc8e8f2c6e@3b860",
+      "displayName": "",
+      "id": "3b860",
+      "name": "F_PalBackL.mesh",
+      "userData": {
+        "gltfIndex": 7,
+        "triangleCount": 150
+      },
+      "ver": "1.1.1",
+      "imported": true,
+      "files": [
+        ".bin",
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "9e017": {
+      "importer": "gltf-mesh",
+      "uuid": "3e3da077-355e-4772-bbf5-f7cc8e8f2c6e@9e017",
+      "displayName": "",
+      "id": "9e017",
+      "name": "F_PalBackR.mesh",
+      "userData": {
+        "gltfIndex": 8,
+        "triangleCount": 136
+      },
+      "ver": "1.1.1",
+      "imported": true,
+      "files": [
+        ".bin",
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "af153": {
+      "importer": "gltf-mesh",
+      "uuid": "3e3da077-355e-4772-bbf5-f7cc8e8f2c6e@af153",
+      "displayName": "",
+      "id": "af153",
+      "name": "F_PalFrontL.mesh",
+      "userData": {
+        "gltfIndex": 9,
+        "triangleCount": 108
+      },
+      "ver": "1.1.1",
+      "imported": true,
+      "files": [
+        ".bin",
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "4c3ae": {
+      "importer": "gltf-mesh",
+      "uuid": "3e3da077-355e-4772-bbf5-f7cc8e8f2c6e@4c3ae",
+      "displayName": "",
+      "id": "4c3ae",
+      "name": "F_PalLeftB.mesh",
+      "userData": {
+        "gltfIndex": 11,
+        "triangleCount": 108
+      },
+      "ver": "1.1.1",
+      "imported": true,
+      "files": [
+        ".bin",
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "cf040": {
+      "importer": "gltf-mesh",
+      "uuid": "3e3da077-355e-4772-bbf5-f7cc8e8f2c6e@cf040",
+      "displayName": "",
+      "id": "cf040",
+      "name": "F_PalLeftF.mesh",
+      "userData": {
+        "gltfIndex": 12,
+        "triangleCount": 108
+      },
+      "ver": "1.1.1",
+      "imported": true,
+      "files": [
+        ".bin",
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "6f46c": {
+      "importer": "gltf-mesh",
+      "uuid": "3e3da077-355e-4772-bbf5-f7cc8e8f2c6e@6f46c",
+      "displayName": "",
+      "id": "6f46c",
+      "name": "F_PalRightB.mesh",
+      "userData": {
+        "gltfIndex": 13,
+        "triangleCount": 108
+      },
+      "ver": "1.1.1",
+      "imported": true,
+      "files": [
+        ".bin",
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "32aa1": {
+      "importer": "gltf-mesh",
+      "uuid": "3e3da077-355e-4772-bbf5-f7cc8e8f2c6e@32aa1",
+      "displayName": "",
+      "id": "32aa1",
+      "name": "F_PalRightF.mesh",
+      "userData": {
+        "gltfIndex": 14,
+        "triangleCount": 108
+      },
+      "ver": "1.1.1",
+      "imported": true,
+      "files": [
+        ".bin",
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "4676e": {
+      "importer": "gltf-mesh",
+      "uuid": "3e3da077-355e-4772-bbf5-f7cc8e8f2c6e@4676e",
+      "displayName": "",
+      "id": "4676e",
+      "name": "F_Roof.mesh",
+      "userData": {
+        "gltfIndex": 15,
+        "triangleCount": 128
+      },
+      "ver": "1.1.1",
+      "imported": true,
+      "files": [
+        ".bin",
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "19f85": {
+      "importer": "gltf-scene",
+      "uuid": "3e3da077-355e-4772-bbf5-f7cc8e8f2c6e@19f85",
+      "displayName": "",
+      "id": "19f85",
+      "name": "fortress_pieces.prefab",
+      "userData": {
+        "gltfIndex": 0
+      },
+      "ver": "1.0.14",
+      "imported": true,
+      "files": [
+        ".json"
+      ],
+      "subMetas": {}
+    }
+  },
+  "userData": {
+    "imageMetas": [],
+    "lods": {
+      "enable": false,
+      "hasBuiltinLOD": false,
+      "options": [
+        {
+          "screenRatio": 0.25,
+          "faceCount": 1
+        },
+        {
+          "screenRatio": 0.125,
+          "faceCount": 0.25
+        },
+        {
+          "screenRatio": 0.01,
+          "faceCount": 0.1
+        }
+      ]
+    },
+    "assetFinder": {
+      "meshes": [
+        "3e3da077-355e-4772-bbf5-f7cc8e8f2c6e@66961",
+        "3e3da077-355e-4772-bbf5-f7cc8e8f2c6e@1189f",
+        "3e3da077-355e-4772-bbf5-f7cc8e8f2c6e@ddfd7",
+        "3e3da077-355e-4772-bbf5-f7cc8e8f2c6e@0e810",
+        "3e3da077-355e-4772-bbf5-f7cc8e8f2c6e@65d1d",
+        "3e3da077-355e-4772-bbf5-f7cc8e8f2c6e@47b4c",
+        "3e3da077-355e-4772-bbf5-f7cc8e8f2c6e@6aa0b",
+        "3e3da077-355e-4772-bbf5-f7cc8e8f2c6e@3b860",
+        "3e3da077-355e-4772-bbf5-f7cc8e8f2c6e@9e017",
+        "3e3da077-355e-4772-bbf5-f7cc8e8f2c6e@af153",
+        "3e3da077-355e-4772-bbf5-f7cc8e8f2c6e@11757",
+        "3e3da077-355e-4772-bbf5-f7cc8e8f2c6e@4c3ae",
+        "3e3da077-355e-4772-bbf5-f7cc8e8f2c6e@cf040",
+        "3e3da077-355e-4772-bbf5-f7cc8e8f2c6e@6f46c",
+        "3e3da077-355e-4772-bbf5-f7cc8e8f2c6e@32aa1",
+        "3e3da077-355e-4772-bbf5-f7cc8e8f2c6e@4676e"
+      ],
+      "skeletons": [],
+      "textures": [],
+      "materials": [],
+      "scenes": [
+        "3e3da077-355e-4772-bbf5-f7cc8e8f2c6e@19f85"
+      ]
+    }
+  }
+}

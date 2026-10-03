@@ -1,0 +1,75 @@
+{
+  "ver": "2.3.14",
+  "importer": "gltf",
+  "imported": true,
+  "uuid": "0c22dfc9-ce68-425d-9bc8-1f1e46d51326",
+  "files": [],
+  "subMetas": {
+    "59d14": {
+      "importer": "gltf-mesh",
+      "uuid": "0c22dfc9-ce68-425d-9bc8-1f1e46d51326@59d14",
+      "displayName": "",
+      "id": "59d14",
+      "name": "ArenaGround.mesh",
+      "userData": {
+        "gltfIndex": 0,
+        "triangleCount": 24
+      },
+      "ver": "1.1.1",
+      "imported": true,
+      "files": [
+        ".bin",
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "684f8": {
+      "importer": "gltf-scene",
+      "uuid": "0c22dfc9-ce68-425d-9bc8-1f1e46d51326@684f8",
+      "displayName": "",
+      "id": "684f8",
+      "name": "arena_ground.prefab",
+      "userData": {
+        "gltfIndex": 0
+      },
+      "ver": "1.0.14",
+      "imported": true,
+      "files": [
+        ".json"
+      ],
+      "subMetas": {}
+    }
+  },
+  "userData": {
+    "imageMetas": [],
+    "lods": {
+      "enable": false,
+      "hasBuiltinLOD": false,
+      "options": [
+        {
+          "screenRatio": 0.25,
+          "faceCount": 1
+        },
+        {
+          "screenRatio": 0.125,
+          "faceCount": 0.25
+        },
+        {
+          "screenRatio": 0.01,
+          "faceCount": 0.1
+        }
+      ]
+    },
+    "assetFinder": {
+      "meshes": [
+        "0c22dfc9-ce68-425d-9bc8-1f1e46d51326@59d14"
+      ],
+      "skeletons": [],
+      "textures": [],
+      "materials": [],
+      "scenes": [
+        "0c22dfc9-ce68-425d-9bc8-1f1e46d51326@684f8"
+      ]
+    }
+  }
+}

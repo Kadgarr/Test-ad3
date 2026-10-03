@@ -1,0 +1,75 @@
+{
+  "ver": "2.3.14",
+  "importer": "gltf",
+  "imported": true,
+  "uuid": "cce181c4-3d19-4c4e-8e39-258dccec0bb0",
+  "files": [],
+  "subMetas": {
+    "4aa0c": {
+      "importer": "gltf-mesh",
+      "uuid": "cce181c4-3d19-4c4e-8e39-258dccec0bb0@4aa0c",
+      "displayName": "",
+      "id": "4aa0c",
+      "name": "Barracks.mesh",
+      "userData": {
+        "gltfIndex": 0,
+        "triangleCount": 436
+      },
+      "ver": "1.1.1",
+      "imported": true,
+      "files": [
+        ".bin",
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "1c3f5": {
+      "importer": "gltf-scene",
+      "uuid": "cce181c4-3d19-4c4e-8e39-258dccec0bb0@1c3f5",
+      "displayName": "",
+      "id": "1c3f5",
+      "name": "barracks.prefab",
+      "userData": {
+        "gltfIndex": 0
+      },
+      "ver": "1.0.14",
+      "imported": true,
+      "files": [
+        ".json"
+      ],
+      "subMetas": {}
+    }
+  },
+  "userData": {
+    "imageMetas": [],
+    "lods": {
+      "enable": false,
+      "hasBuiltinLOD": false,
+      "options": [
+        {
+          "screenRatio": 0.25,
+          "faceCount": 1
+        },
+        {
+          "screenRatio": 0.125,
+          "faceCount": 0.25
+        },
+        {
+          "screenRatio": 0.01,
+          "faceCount": 0.1
+        }
+      ]
+    },
+    "assetFinder": {
+      "meshes": [
+        "cce181c4-3d19-4c4e-8e39-258dccec0bb0@4aa0c"
+      ],
+      "skeletons": [],
+      "textures": [],
+      "materials": [],
+      "scenes": [
+        "cce181c4-3d19-4c4e-8e39-258dccec0bb0@1c3f5"
+      ]
+    }
+  }
+}

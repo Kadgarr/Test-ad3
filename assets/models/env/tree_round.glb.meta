@@ -1,0 +1,75 @@
+{
+  "ver": "2.3.14",
+  "importer": "gltf",
+  "imported": true,
+  "uuid": "6a1135f6-90b3-49f0-939d-0a8dc5ee2d19",
+  "files": [],
+  "subMetas": {
+    "0aa0f": {
+      "importer": "gltf-mesh",
+      "uuid": "6a1135f6-90b3-49f0-939d-0a8dc5ee2d19@0aa0f",
+      "displayName": "",
+      "id": "0aa0f",
+      "name": "TreeRound.mesh",
+      "userData": {
+        "gltfIndex": 0,
+        "triangleCount": 176
+      },
+      "ver": "1.1.1",
+      "imported": true,
+      "files": [
+        ".bin",
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "63b37": {
+      "importer": "gltf-scene",
+      "uuid": "6a1135f6-90b3-49f0-939d-0a8dc5ee2d19@63b37",
+      "displayName": "",
+      "id": "63b37",
+      "name": "tree_round.prefab",
+      "userData": {
+        "gltfIndex": 0
+      },
+      "ver": "1.0.14",
+      "imported": true,
+      "files": [
+        ".json"
+      ],
+      "subMetas": {}
+    }
+  },
+  "userData": {
+    "imageMetas": [],
+    "lods": {
+      "enable": false,
+      "hasBuiltinLOD": false,
+      "options": [
+        {
+          "screenRatio": 0.25,
+          "faceCount": 1
+        },
+        {
+          "screenRatio": 0.125,
+          "faceCount": 0.25
+        },
+        {
+          "screenRatio": 0.01,
+          "faceCount": 0.1
+        }
+      ]
+    },
+    "assetFinder": {
+      "meshes": [
+        "6a1135f6-90b3-49f0-939d-0a8dc5ee2d19@0aa0f"
+      ],
+      "skeletons": [],
+      "textures": [],
+      "materials": [],
+      "scenes": [
+        "6a1135f6-90b3-49f0-939d-0a8dc5ee2d19@63b37"
+      ]
+    }
+  }
+}

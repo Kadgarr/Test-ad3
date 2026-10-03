@@ -1,0 +1,151 @@
+{
+  "ver": "2.3.14",
+  "importer": "gltf",
+  "imported": true,
+  "uuid": "22c1ee2f-1986-4d54-b8ea-af8e0fbde0dc",
+  "files": [],
+  "subMetas": {
+    "27209": {
+      "importer": "gltf-mesh",
+      "uuid": "22c1ee2f-1986-4d54-b8ea-af8e0fbde0dc@27209",
+      "displayName": "",
+      "id": "27209",
+      "name": "Body.004.mesh",
+      "userData": {
+        "gltfIndex": 4,
+        "triangleCount": 384
+      },
+      "ver": "1.1.1",
+      "imported": true,
+      "files": [
+        ".bin",
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "30402": {
+      "importer": "gltf-mesh",
+      "uuid": "22c1ee2f-1986-4d54-b8ea-af8e0fbde0dc@30402",
+      "displayName": "",
+      "id": "30402",
+      "name": "ArmL.009.mesh",
+      "userData": {
+        "gltfIndex": 0,
+        "triangleCount": 184
+      },
+      "ver": "1.1.1",
+      "imported": true,
+      "files": [
+        ".bin",
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "abb50": {
+      "importer": "gltf-mesh",
+      "uuid": "22c1ee2f-1986-4d54-b8ea-af8e0fbde0dc@abb50",
+      "displayName": "",
+      "id": "abb50",
+      "name": "ArmR.005.mesh",
+      "userData": {
+        "gltfIndex": 1,
+        "triangleCount": 88
+      },
+      "ver": "1.1.1",
+      "imported": true,
+      "files": [
+        ".bin",
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "88f09": {
+      "importer": "gltf-mesh",
+      "uuid": "22c1ee2f-1986-4d54-b8ea-af8e0fbde0dc@88f09",
+      "displayName": "",
+      "id": "88f09",
+      "name": "LegL.004.mesh",
+      "userData": {
+        "gltfIndex": 2,
+        "triangleCount": 56
+      },
+      "ver": "1.1.1",
+      "imported": true,
+      "files": [
+        ".bin",
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "2fabb": {
+      "importer": "gltf-mesh",
+      "uuid": "22c1ee2f-1986-4d54-b8ea-af8e0fbde0dc@2fabb",
+      "displayName": "",
+      "id": "2fabb",
+      "name": "LegR.004.mesh",
+      "userData": {
+        "gltfIndex": 3,
+        "triangleCount": 56
+      },
+      "ver": "1.1.1",
+      "imported": true,
+      "files": [
+        ".bin",
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "7f59a": {
+      "importer": "gltf-scene",
+      "uuid": "22c1ee2f-1986-4d54-b8ea-af8e0fbde0dc@7f59a",
+      "displayName": "",
+      "id": "7f59a",
+      "name": "archer.prefab",
+      "userData": {
+        "gltfIndex": 0
+      },
+      "ver": "1.0.14",
+      "imported": true,
+      "files": [
+        ".json"
+      ],
+      "subMetas": {}
+    }
+  },
+  "userData": {
+    "imageMetas": [],
+    "lods": {
+      "enable": false,
+      "hasBuiltinLOD": false,
+      "options": [
+        {
+          "screenRatio": 0.25,
+          "faceCount": 1
+        },
+        {
+          "screenRatio": 0.125,
+          "faceCount": 0.25
+        },
+        {
+          "screenRatio": 0.01,
+          "faceCount": 0.1
+        }
+      ]
+    },
+    "assetFinder": {
+      "meshes": [
+        "22c1ee2f-1986-4d54-b8ea-af8e0fbde0dc@30402",
+        "22c1ee2f-1986-4d54-b8ea-af8e0fbde0dc@abb50",
+        "22c1ee2f-1986-4d54-b8ea-af8e0fbde0dc@88f09",
+        "22c1ee2f-1986-4d54-b8ea-af8e0fbde0dc@2fabb",
+        "22c1ee2f-1986-4d54-b8ea-af8e0fbde0dc@27209"
+      ],
+      "skeletons": [],
+      "textures": [],
+      "materials": [],
+      "scenes": [
+        "22c1ee2f-1986-4d54-b8ea-af8e0fbde0dc@7f59a"
+      ]
+    }
+  }
+}

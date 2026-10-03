@@ -1,0 +1,151 @@
+{
+  "ver": "2.3.14",
+  "importer": "gltf",
+  "imported": true,
+  "uuid": "bd17ee04-3732-41e5-8074-bcb7561a262c",
+  "files": [],
+  "subMetas": {
+    "0bcb0": {
+      "importer": "gltf-mesh",
+      "uuid": "bd17ee04-3732-41e5-8074-bcb7561a262c@0bcb0",
+      "displayName": "",
+      "id": "0bcb0",
+      "name": "ArmL.006.mesh",
+      "userData": {
+        "gltfIndex": 0,
+        "triangleCount": 56
+      },
+      "ver": "1.1.1",
+      "imported": true,
+      "files": [
+        ".bin",
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "cd606": {
+      "importer": "gltf-mesh",
+      "uuid": "bd17ee04-3732-41e5-8074-bcb7561a262c@cd606",
+      "displayName": "",
+      "id": "cd606",
+      "name": "ArmR.006.mesh",
+      "userData": {
+        "gltfIndex": 1,
+        "triangleCount": 100
+      },
+      "ver": "1.1.1",
+      "imported": true,
+      "files": [
+        ".bin",
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "4c006": {
+      "importer": "gltf-mesh",
+      "uuid": "bd17ee04-3732-41e5-8074-bcb7561a262c@4c006",
+      "displayName": "",
+      "id": "4c006",
+      "name": "LegL.005.mesh",
+      "userData": {
+        "gltfIndex": 2,
+        "triangleCount": 44
+      },
+      "ver": "1.1.1",
+      "imported": true,
+      "files": [
+        ".bin",
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "2d865": {
+      "importer": "gltf-mesh",
+      "uuid": "bd17ee04-3732-41e5-8074-bcb7561a262c@2d865",
+      "displayName": "",
+      "id": "2d865",
+      "name": "LegR.005.mesh",
+      "userData": {
+        "gltfIndex": 3,
+        "triangleCount": 44
+      },
+      "ver": "1.1.1",
+      "imported": true,
+      "files": [
+        ".bin",
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "8e8e2": {
+      "importer": "gltf-mesh",
+      "uuid": "bd17ee04-3732-41e5-8074-bcb7561a262c@8e8e2",
+      "displayName": "",
+      "id": "8e8e2",
+      "name": "Body.005.mesh",
+      "userData": {
+        "gltfIndex": 4,
+        "triangleCount": 348
+      },
+      "ver": "1.1.1",
+      "imported": true,
+      "files": [
+        ".bin",
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "63d90": {
+      "importer": "gltf-scene",
+      "uuid": "bd17ee04-3732-41e5-8074-bcb7561a262c@63d90",
+      "displayName": "",
+      "id": "63d90",
+      "name": "mage.prefab",
+      "userData": {
+        "gltfIndex": 0
+      },
+      "ver": "1.0.14",
+      "imported": true,
+      "files": [
+        ".json"
+      ],
+      "subMetas": {}
+    }
+  },
+  "userData": {
+    "imageMetas": [],
+    "lods": {
+      "enable": false,
+      "hasBuiltinLOD": false,
+      "options": [
+        {
+          "screenRatio": 0.25,
+          "faceCount": 1
+        },
+        {
+          "screenRatio": 0.125,
+          "faceCount": 0.25
+        },
+        {
+          "screenRatio": 0.01,
+          "faceCount": 0.1
+        }
+      ]
+    },
+    "assetFinder": {
+      "meshes": [
+        "bd17ee04-3732-41e5-8074-bcb7561a262c@0bcb0",
+        "bd17ee04-3732-41e5-8074-bcb7561a262c@cd606",
+        "bd17ee04-3732-41e5-8074-bcb7561a262c@4c006",
+        "bd17ee04-3732-41e5-8074-bcb7561a262c@2d865",
+        "bd17ee04-3732-41e5-8074-bcb7561a262c@8e8e2"
+      ],
+      "skeletons": [],
+      "textures": [],
+      "materials": [],
+      "scenes": [
+        "bd17ee04-3732-41e5-8074-bcb7561a262c@63d90"
+      ]
+    }
+  }
+}

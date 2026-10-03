@@ -1,0 +1,75 @@
+{
+  "ver": "2.3.14",
+  "importer": "gltf",
+  "imported": true,
+  "uuid": "e3fe5ed7-d0a4-4e46-9e79-19655a70a950",
+  "files": [],
+  "subMetas": {
+    "6045c": {
+      "importer": "gltf-mesh",
+      "uuid": "e3fe5ed7-d0a4-4e46-9e79-19655a70a950@6045c",
+      "displayName": "",
+      "id": "6045c",
+      "name": "LakeB.mesh",
+      "userData": {
+        "gltfIndex": 0,
+        "triangleCount": 156
+      },
+      "ver": "1.1.1",
+      "imported": true,
+      "files": [
+        ".bin",
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "244f4": {
+      "importer": "gltf-scene",
+      "uuid": "e3fe5ed7-d0a4-4e46-9e79-19655a70a950@244f4",
+      "displayName": "",
+      "id": "244f4",
+      "name": "lake_b.prefab",
+      "userData": {
+        "gltfIndex": 0
+      },
+      "ver": "1.0.14",
+      "imported": true,
+      "files": [
+        ".json"
+      ],
+      "subMetas": {}
+    }
+  },
+  "userData": {
+    "imageMetas": [],
+    "lods": {
+      "enable": false,
+      "hasBuiltinLOD": false,
+      "options": [
+        {
+          "screenRatio": 0.25,
+          "faceCount": 1
+        },
+        {
+          "screenRatio": 0.125,
+          "faceCount": 0.25
+        },
+        {
+          "screenRatio": 0.01,
+          "faceCount": 0.1
+        }
+      ]
+    },
+    "assetFinder": {
+      "meshes": [
+        "e3fe5ed7-d0a4-4e46-9e79-19655a70a950@6045c"
+      ],
+      "skeletons": [],
+      "textures": [],
+      "materials": [],
+      "scenes": [
+        "e3fe5ed7-d0a4-4e46-9e79-19655a70a950@244f4"
+      ]
+    }
+  }
+}

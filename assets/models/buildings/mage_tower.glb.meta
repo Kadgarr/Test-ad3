@@ -1,0 +1,75 @@
+{
+  "ver": "2.3.14",
+  "importer": "gltf",
+  "imported": true,
+  "uuid": "42b9296a-7335-419e-8f56-5fbb43dfad78",
+  "files": [],
+  "subMetas": {
+    "4731c": {
+      "importer": "gltf-mesh",
+      "uuid": "42b9296a-7335-419e-8f56-5fbb43dfad78@4731c",
+      "displayName": "",
+      "id": "4731c",
+      "name": "MageTower.mesh",
+      "userData": {
+        "gltfIndex": 0,
+        "triangleCount": 444
+      },
+      "ver": "1.1.1",
+      "imported": true,
+      "files": [
+        ".bin",
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "f9342": {
+      "importer": "gltf-scene",
+      "uuid": "42b9296a-7335-419e-8f56-5fbb43dfad78@f9342",
+      "displayName": "",
+      "id": "f9342",
+      "name": "mage_tower.prefab",
+      "userData": {
+        "gltfIndex": 0
+      },
+      "ver": "1.0.14",
+      "imported": true,
+      "files": [
+        ".json"
+      ],
+      "subMetas": {}
+    }
+  },
+  "userData": {
+    "imageMetas": [],
+    "lods": {
+      "enable": false,
+      "hasBuiltinLOD": false,
+      "options": [
+        {
+          "screenRatio": 0.25,
+          "faceCount": 1
+        },
+        {
+          "screenRatio": 0.125,
+          "faceCount": 0.25
+        },
+        {
+          "screenRatio": 0.01,
+          "faceCount": 0.1
+        }
+      ]
+    },
+    "assetFinder": {
+      "meshes": [
+        "42b9296a-7335-419e-8f56-5fbb43dfad78@4731c"
+      ],
+      "skeletons": [],
+      "textures": [],
+      "materials": [],
+      "scenes": [
+        "42b9296a-7335-419e-8f56-5fbb43dfad78@f9342"
+      ]
+    }
+  }
+}

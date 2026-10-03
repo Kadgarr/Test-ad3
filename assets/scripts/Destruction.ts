@@ -30,6 +30,20 @@ export class Destruction {
         }
     }
 
+    // Fly pre-cut model pieces (already parented in world space). Pivots sit at the model origin,
+    // so pieces get mostly translation and only a gentle spin.
+    runPieces(nodes: Node[], center: Vec3) {
+        for (const n of nodes) {
+            const p = n.getPosition();
+            const dir = new Vec3(Math.random() - 0.5, 0, Math.random() - 0.5);
+            const v = new Vec3(dir.x * 7, 6 + Math.random() * 6, dir.z * 7);
+            const av = new Vec3((Math.random() - 0.5) * 60, (Math.random() - 0.5) * 60, (Math.random() - 0.5) * 60);
+            const r = n.eulerAngles.clone();
+            this.frags.push({ n, p: p.clone(), v, r, av, h: 0.0, rest: false });
+            this.moving++;
+        }
+    }
+
     update(dt: number) {
         for (let i = 0; i < this.frags.length; i++) {
             const f = this.frags[i];
