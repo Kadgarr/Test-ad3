@@ -49,7 +49,43 @@
       "name": "Body.010.mesh",
       "userData": {
         "gltfIndex": 2,
-        "triangleCount": 620
+        "triangleCount": 420
+      },
+      "ver": "1.1.1",
+      "imported": true,
+      "files": [
+        ".bin",
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "040fb": {
+      "importer": "gltf-mesh",
+      "uuid": "bf58f86f-0ebe-4ec2-9084-6ca3e34fd3e1@040fb",
+      "displayName": "",
+      "id": "040fb",
+      "name": "Head.mesh",
+      "userData": {
+        "gltfIndex": 3,
+        "triangleCount": 148
+      },
+      "ver": "1.1.1",
+      "imported": true,
+      "files": [
+        ".bin",
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "82d8f": {
+      "importer": "gltf-mesh",
+      "uuid": "bf58f86f-0ebe-4ec2-9084-6ca3e34fd3e1@82d8f",
+      "displayName": "",
+      "id": "82d8f",
+      "name": "Neck.mesh",
+      "userData": {
+        "gltfIndex": 4,
+        "triangleCount": 52
       },
       "ver": "1.1.1",
       "imported": true,
@@ -100,7 +136,9 @@
       "meshes": [
         "bf58f86f-0ebe-4ec2-9084-6ca3e34fd3e1@a5bbe",
         "bf58f86f-0ebe-4ec2-9084-6ca3e34fd3e1@bbf9d",
-        "bf58f86f-0ebe-4ec2-9084-6ca3e34fd3e1@db932"
+        "bf58f86f-0ebe-4ec2-9084-6ca3e34fd3e1@db932",
+        "bf58f86f-0ebe-4ec2-9084-6ca3e34fd3e1@040fb",
+        "bf58f86f-0ebe-4ec2-9084-6ca3e34fd3e1@82d8f"
       ],
       "skeletons": [],
       "textures": [],

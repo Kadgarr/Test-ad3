@@ -2,6 +2,7 @@
 // and to state timers (scheduleOnce with an epoch guard). It also owns the single game tick:
 // update() only scales time, steps LaneSim, debris and world tags — no polling of game state.
 import { _decorator, Component, Node, Camera, Color, Layers, DirectionalLight, Material, Prefab, director, Vec3, tween, Tween, view, ResolutionPolicy } from 'cc';
+import { PREVIEW } from 'cc/env';
 import { registerModels, spawnModel, meshLeaves } from './Models';
 import { PLAYER, ENEMY, LAYOUT, TIMING, CHOICES, BUILDINGS, UNITS } from './Config';
 import { Pool, buildingLook, castleLook, ground, decor, slotBase, slotRing, fxLook, setBaseMaterials, baseFences, landmarks } from './Greybox';
@@ -27,6 +28,8 @@ type State = 'BOOT' | 'INTRO' | 'CHOICE' | 'WRONG' | 'BATTLE_1' | 'LAIR' | 'THRE
 let adReadySent = false;
 const tmpV = new Vec3();
 const ONE = new Vec3(1, 1, 1);
+const RISE = new Vec3(1.1, 1.2, 1.1);     // building pops up out of the slot...
+const SETTLE = new Vec3(0.97, 0.9, 0.97); // ...and settles with a small squash
 
 @ccclass('Director')
 export class Director extends Component {
@@ -77,6 +80,11 @@ export class Director extends Component {
     private threatStartHp = 0;
 
     start() {
+        // Dev hook (editor preview only, stripped from builds): ?showcase opens the animation showcase scene.
+        if (PREVIEW && typeof location !== 'undefined' && location.search.indexOf('showcase') >= 0) {
+            director.loadScene('AnimShowcase');
+            return;
+        }
         if (!this.litMaterial || !this.unlitMaterial) {
             console.error('[Director] Assign litMaterial and unlitMaterial in the inspector');
             return;
@@ -307,14 +315,19 @@ export class Director extends Component {
         slot.buildingId = id;
         b.setRotationFromEuler(0, facadeYaw(id, !!this.portrait), 0);   // facade toward the screen
         if (anim) {
-            b.setScale(0.05, 0.05, 0.05);
-            tween(b).to(0.35, { scale: ONE }, { easing: 'backOut' }).start();
+            b.setScale(0.7, 0.02, 0.7);
+            tween(b).to(0.2, { scale: RISE }, { easing: 'quadOut' })
+                .to(0.14, { scale: SETTLE }, { easing: 'sineInOut' })
+                .to(0.12, { scale: ONE }, { easing: 'sineOut' })
+                .call(() => { (b as any).__built = true; })
+                .start();
             this.fx(tmpV.set(slot.pos.x, 0.8, slot.pos.z), '#ffffff', 3.2, 0.3);
-        }
+        } else (b as any).__built = true;
         slot.building = b;
         if (slot.side === PLAYER && !def.maxCount) this.burst(slot, def.unit);
         const sp = new Spawner(slot.side, def.unit, def.interval, slot.pos.x, slot.pos.z,
             def.maxCount || 0, def.firstDelay !== undefined ? def.firstDelay : 0.4);
+        sp.node = b;
         this.sim.spawners.push(sp);
         slot.spawner = sp;
     }

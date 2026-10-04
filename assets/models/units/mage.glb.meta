@@ -23,6 +23,24 @@
       ],
       "subMetas": {}
     },
+    "2ce5b": {
+      "importer": "gltf-mesh",
+      "uuid": "bd17ee04-3732-41e5-8074-bcb7561a262c@2ce5b",
+      "displayName": "",
+      "id": "2ce5b",
+      "name": "Staff.mesh",
+      "userData": {
+        "gltfIndex": 1,
+        "triangleCount": 44
+      },
+      "ver": "1.1.1",
+      "imported": true,
+      "files": [
+        ".bin",
+        ".json"
+      ],
+      "subMetas": {}
+    },
     "cd606": {
       "importer": "gltf-mesh",
       "uuid": "bd17ee04-3732-41e5-8074-bcb7561a262c@cd606",
@@ -30,8 +48,8 @@
       "id": "cd606",
       "name": "ArmR.006.mesh",
       "userData": {
-        "gltfIndex": 1,
-        "triangleCount": 100
+        "gltfIndex": 2,
+        "triangleCount": 56
       },
       "ver": "1.1.1",
       "imported": true,
@@ -48,7 +66,7 @@
       "id": "4c006",
       "name": "LegL.005.mesh",
       "userData": {
-        "gltfIndex": 2,
+        "gltfIndex": 3,
         "triangleCount": 44
       },
       "ver": "1.1.1",
@@ -66,7 +84,7 @@
       "id": "2d865",
       "name": "LegR.005.mesh",
       "userData": {
-        "gltfIndex": 3,
+        "gltfIndex": 4,
         "triangleCount": 44
       },
       "ver": "1.1.1",
@@ -84,7 +102,7 @@
       "id": "8e8e2",
       "name": "Body.005.mesh",
       "userData": {
-        "gltfIndex": 4,
+        "gltfIndex": 5,
         "triangleCount": 348
       },
       "ver": "1.1.1",
@@ -135,6 +153,7 @@
     "assetFinder": {
       "meshes": [
         "bd17ee04-3732-41e5-8074-bcb7561a262c@0bcb0",
+        "bd17ee04-3732-41e5-8074-bcb7561a262c@2ce5b",
         "bd17ee04-3732-41e5-8074-bcb7561a262c@cd606",
         "bd17ee04-3732-41e5-8074-bcb7561a262c@4c006",
         "bd17ee04-3732-41e5-8074-bcb7561a262c@2d865",

@@ -12,8 +12,26 @@
       "id": "51577",
       "name": "wingL.005.mesh",
       "userData": {
-        "gltfIndex": 0,
+        "gltfIndex": 1,
         "triangleCount": 168
+      },
+      "ver": "1.1.1",
+      "imported": true,
+      "files": [
+        ".bin",
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "8ca6e": {
+      "importer": "gltf-mesh",
+      "uuid": "527ee511-4250-4626-9fc5-cfb57e91372b@8ca6e",
+      "displayName": "",
+      "id": "8ca6e",
+      "name": "Head.001.mesh",
+      "userData": {
+        "gltfIndex": 0,
+        "triangleCount": 244
       },
       "ver": "1.1.1",
       "imported": true,
@@ -30,7 +48,7 @@
       "id": "6a3ab",
       "name": "wingR.005.mesh",
       "userData": {
-        "gltfIndex": 1,
+        "gltfIndex": 2,
         "triangleCount": 168
       },
       "ver": "1.1.1",
@@ -48,8 +66,8 @@
       "id": "a6698",
       "name": "Body.009.mesh",
       "userData": {
-        "gltfIndex": 2,
-        "triangleCount": 944
+        "gltfIndex": 3,
+        "triangleCount": 700
       },
       "ver": "1.1.1",
       "imported": true,
@@ -98,6 +116,7 @@
     },
     "assetFinder": {
       "meshes": [
+        "527ee511-4250-4626-9fc5-cfb57e91372b@8ca6e",
         "527ee511-4250-4626-9fc5-cfb57e91372b@51577",
         "527ee511-4250-4626-9fc5-cfb57e91372b@6a3ab",
         "527ee511-4250-4626-9fc5-cfb57e91372b@a6698"

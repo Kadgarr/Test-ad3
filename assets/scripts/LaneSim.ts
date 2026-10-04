@@ -4,7 +4,7 @@ import { Node, Vec3, tween, Tween } from 'cc';
 import { UnitDef, UNITS, DMG_MULT, PLAYER, ENEMY, LAYOUT, DmgType } from './Config';
 import { Pool, unitLook, projLook } from './Greybox';
 import { GameEvents, EV } from './Events';
-import { findByPrefix } from './Models';
+import { Rig, AnimState, stepAnim } from './UnitAnim';
 
 export class Unit {
     def: UnitDef = null;
@@ -19,7 +19,9 @@ export class Unit {
     bob = 0;
     face = 0;
     node: Node = null;
-    wings: Node[] = null;
+    rig: Rig = null;
+    engaged = false;   // target in reach this tick: the wind-up pose follows the cooldown
+    anim: AnimState = { phase: 0, move: 0, atk: -1, cock: 0, hurt: 0, wing: 0, t: 0 };
 }
 
 export class Castle {
@@ -44,6 +46,7 @@ export class Spawner {
     t: number;
     spawned = 0;
     active = true;
+    node: Node = null;   // building that produces the units: pulses on every spawn
     constructor(public side: number, public unitId: string, public interval: number,
                 public x: number, public z: number, public maxCount = 0, firstDelay = 0.4) {
         this.t = firstDelay;
@@ -80,12 +83,11 @@ export class LaneSim {
     private v = new Vec3();
     private one: Vec3;
     private tiny = new Vec3(0.01, 0.01, 0.01);
-    private punch: Vec3;
+    private squash = new Vec3(1.06, 0.9, 1.06);
 
     constructor(private pool: Pool) {
         const s = LAYOUT.unitScale;
         this.one = new Vec3(s, s, s);
-        this.punch = new Vec3(s * 1.18, s * 1.18, s * 1.18);
     }
 
     count(side: number): number { return this.aliveCount[side]; }
@@ -97,16 +99,10 @@ export class LaneSim {
         u.bob = Math.random() * 6;
         u.zLane = (Math.random() * 2 - 1) * LAYOUT.laneHalfWidth;
         u.node = this.pool.get('u_' + unitId, () => unitLook(unitId));
-        // wing lookup is cached on the pooled node
-        const nd: any = u.node;
-        if (!nd.__wings) {
-            nd.__wings = [];
-            const wl = findByPrefix(u.node, 'wingL');
-            const wr = findByPrefix(u.node, 'wingR');
-            if (wl) nd.__wings.push(wl);
-            if (wr) nd.__wings.push(wr);
-        }
-        u.wings = nd.__wings;
+        u.rig = Rig.of(u.node, unitId);   // cached on the pooled node
+        u.rig.reset();
+        u.anim.phase = Math.random() * 6;
+        u.anim.wing = u.bob;
         u.face = side === PLAYER ? 1 : -1;
         u.node.setRotationFromEuler(0, side === PLAYER ? -90 : 90, 0);
         Tween.stopAllByTarget(u.node);
@@ -132,6 +128,7 @@ export class LaneSim {
                 if (this.aliveCount[s.side] >= LAYOUT.unitCap) continue;
                 this.spawn(s.unitId, s.side, s.x, s.z);
                 s.spawned++;
+                if (s.node) this.pulse(s.node);
             }
         }
         for (let i = 0; i < this.units.length; i++) {
@@ -149,14 +146,22 @@ export class LaneSim {
     }
 
     private place(u: Unit) {
-        let y = 0;
-        if (u.def.layer === 'air') {
-            y = LAYOUT.airHeight + Math.sin(u.bob) * 0.18;
-            const a = Math.sin(u.bob * 2.2) * 28;
-            if (u.wings[0]) u.wings[0].setRotationFromEuler(0, 0, a);
-            if (u.wings[1]) u.wings[1].setRotationFromEuler(0, 0, -a);
-        }
+        const y = u.def.layer === 'air' ? LAYOUT.airHeight + Math.sin(u.bob) * 0.18 : 0;
         u.node.setPosition(u.x, y, u.z);
+        u.rig.pose(u.anim);
+    }
+
+    // Animation clocks for one unit; the pose itself is applied in place().
+    private animate(u: Unit, dt: number, moved: boolean) {
+        stepAnim(u.anim, u.rig, dt, moved, u.engaged, u.cd, u.def.cooldown, u.def.speed);
+    }
+
+    // A building squashes a little each time it produces a unit (skipped while it is still rising).
+    private pulse(n: Node) {
+        if (!(n as any).__built) return;
+        Tween.stopAllByTarget(n);
+        n.setScale(Vec3.ONE);
+        tween(n).to(0.07, { scale: this.squash }).to(0.16, { scale: Vec3.ONE }, { easing: 'backOut' }).start();
     }
 
     private think(u: Unit, dt: number) {
@@ -164,7 +169,9 @@ export class LaneSim {
         u.cd -= dt;
         u.immuneT -= dt;
         u.bob += dt * 4;
-        if (!this.combat) { this.place(u); return; }
+        u.engaged = false;
+        let moved = false;
+        if (!this.combat) { this.animate(u, dt, false); this.place(u); return; }
         const dir = u.side === PLAYER ? 1 : -1;
         u.z += (u.zLane - u.z) * Math.min(1, dt * 2.5);
 
@@ -193,17 +200,17 @@ export class LaneSim {
         if (best) {
             const reach = def.range + def.radius + best.def.radius;
             const gap = best.x - u.x;
-            if (Math.abs(gap) <= reach) this.attack(u, best, null);
-            else u.x += Math.sign(gap) * def.speed * dt;
+            if (Math.abs(gap) <= reach) { u.engaged = true; this.attack(u, best, null); }
+            else { u.x += Math.sign(gap) * def.speed * dt; moved = true; }
         } else {
             const c = this.castles[1 - u.side];
             const d = Math.abs(c.x - u.x) - LAYOUT.castleHalf;
             if (c.guarded) {
                 // Castle can't be damaged right now: gather at the gates instead of hitting it for nothing.
                 const hold = def.range + def.radius + 1.2 + Math.abs(u.zLane) * 0.7; // stable per-unit spread
-                if (d > hold) u.x += dir * def.speed * dt;
-            } else if (d <= def.range + def.radius) this.attack(u, null, c);
-            else u.x += dir * def.speed * dt;
+                if (d > hold) { u.x += dir * def.speed * dt; moved = true; }
+            } else if (d <= def.range + def.radius) { u.engaged = true; this.attack(u, null, c); }
+            else { u.x += dir * def.speed * dt; moved = true; }
         }
         if (!u.alive) return;
         const face = best ? Math.sign(best.x - u.x) || dir : dir;
@@ -211,6 +218,7 @@ export class LaneSim {
             u.face = face;
             u.node.setRotationFromEuler(0, face > 0 ? -90 : 90, 0);
         }
+        this.animate(u, dt, moved);
         this.place(u);
     }
 
@@ -218,10 +226,9 @@ export class LaneSim {
         if (u.cd > 0) return;
         const def = u.def;
         u.cd = def.cooldown * (0.9 + Math.random() * 0.2);
+        u.anim.atk = 0;      // strike pose starts on the damage frame
+        u.anim.cock = 0;
         if (def.projectile) { this.fire(u, t, c); return; }
-        Tween.stopAllByTarget(u.node);
-        u.node.setScale(this.one);
-        tween(u.node).to(0.06, { scale: this.punch }).to(0.1, { scale: this.one }).start();
         if (t) this.hitUnit(u.side, def.dmg, def.dmgType, def.splash || 0, t);
         else this.hitCastle(u.side, def.dmg, def.dmgType, c);
     }
@@ -238,6 +245,7 @@ export class LaneSim {
         p.castle = c;
         p.speed = u.def.projSpeed || 14;
         p.pos.set(u.x, (u.def.layer === 'air' ? LAYOUT.airHeight : 0) + 0.9, u.z);
+        if (u.rig.style === 'breath') p.pos.set(u.x + u.face * 2.3, LAYOUT.airHeight + 1.7, u.z); // from the dragon's mouth
         p.node.setPosition(p.pos);
         if (t) this.aimAtUnit(p);
         else p.aim.set(c.x + (c.side === ENEMY ? -1.6 : 1.6), 1.4, u.z * 0.5);
@@ -314,6 +322,7 @@ export class LaneSim {
             return;
         }
         e.hp -= dmg * m;
+        e.anim.hurt = 1;
         if (e.hp <= 0) this.kill(e);
     }
 
@@ -322,8 +331,7 @@ export class LaneSim {
         e.alive = false;
         this.aliveCount[e.side]--;
         const n = e.node;
-        Tween.stopAllByTarget(n);
-        tween(n).to(0.18, { scale: this.tiny }).call(() => this.pool.put(n)).start();
+        e.rig.die(n, e.def.layer === 'air', this.tiny, () => this.pool.put(n));
         GameEvents.emit(EV.UNIT_DIED, e);
     }
 

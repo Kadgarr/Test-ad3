@@ -10,7 +10,7 @@ const WHITE = new Color(255, 255, 255, 255);
 const GOLD = new Color(255, 210, 63, 255);
 const RED = new Color(255, 60, 50, 255);
 
-function uiNode(name: string, parent: Node, w = 100, h = 100): Node {
+export function uiNode(name: string, parent: Node, w = 100, h = 100): Node {
     const n = new Node(name);
     n.layer = UI;
     parent.addChild(n);
@@ -18,7 +18,7 @@ function uiNode(name: string, parent: Node, w = 100, h = 100): Node {
     return n;
 }
 
-function mkLabel(parent: Node, text: string, size: number, color: Color): Label {
+export function mkLabel(parent: Node, text: string, size: number, color: Color): Label {
     const n = uiNode('Label', parent, 600, size * 1.4);
     const l = n.addComponent(Label);
     l.string = text;
