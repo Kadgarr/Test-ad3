@@ -3,12 +3,13 @@
 // world-space particle systems (prefabs in assets/vfx), one draw call each however many effects are alive.
 // Everything is triggered by events (a hit, a shot, a build); short-lived flames fade with tweens.
 import { Node, Prefab, instantiate, ParticleSystem, Vec3, Vec4, Color, Quat, Material, MeshRenderer, Mesh,
-         utils, tween, Tween } from 'cc';
+         utils, tween, Tween, game } from 'cc';
 import { findByPrefix } from './Models';
 
 type Kind = 'glow' | 'star' | 'spark' | 'flame' | 'smoke';
 type Range = [number, number];
-interface Opts { size?: Range; speed?: Range; life?: Range; color?: Color; dir?: Vec3; }
+// spread (deg): with dir, emit as a cone of that angle along dir (sphere-shaped systems too)
+interface Opts { size?: Range; speed?: Range; life?: Range; color?: Color; dir?: Vec3; spread?: number; }
 interface Defaults { size: Range; speed: Range; life: Range; color: Color; }
 
 // Mouth of the dragon in its Head node's space (the head is animated: the breath follows it).
@@ -16,7 +17,7 @@ export const DRAGON_MOUTH = new Vec3(0, -0.07, -0.8);
 
 const c = (r: number, g: number, b: number) => new Color(r, g, b, 255);
 const ARCANE = c(120, 80, 255), ARCANE_HOT = c(175, 145, 255), ARCANE_DEEP = c(90, 50, 255);   // saturated: additive on grass
-const EMBER = c(255, 160, 60), GOLD = c(255, 214, 80), WHITE = c(255, 255, 255);
+const FIRE_HOT = c(255, 220, 120), EMBER = c(255, 160, 60), GOLD = c(255, 214, 80), WHITE = c(255, 255, 255);
 const SPARK = c(255, 230, 150), DUST = c(205, 185, 150), SMOKE = c(85, 82, 82), SMOKE_DARK = c(55, 52, 52);
 const UP = new Vec3(0, 1, 0);
 const tmp = new Vec3();
@@ -39,12 +40,15 @@ function quadMesh(x0: number, x1: number, y0: number, y1: number): Mesh {
 // Fire materials (assets/vfx): the look of each fire is tuned in its material inspector.
 export interface FireMaterials { breath: Material; nest: Material; ground?: Material; }
 
-interface Breath { node: Node; head: Node; from: Vec3; to: Vec3; len: number; fade: number; }
+interface Breath { node: Node; head: Node; from: Vec3; to: Vec3; len: number; fade: number; rot: Quat; acc: number[]; }
 
 export class Vfx {
     private sys: { [k: string]: ParticleSystem } = {};
     private def: { [k: string]: Defaults } = {};
     private nestFire: Prefab = null;
+    private breathTrailPrefab: Prefab = null;
+    private trail: Node = null;                                      // shared VFX_BreathTrail instance
+    private trailPs: { ps: ParticleSystem; rate: number }[] = [];
     private fire: FireMaterials = { breath: null, nest: null };
     private cam: Node = null;
     private parent: Node = null;
@@ -63,6 +67,7 @@ export class Vfx {
             if (!p) continue;
             const name = p.name || (p.data && p.data.name);
             if (name === 'VFX_NestFire') { this.nestFire = p; continue; }
+            if (name === 'VFX_BreathTrail') { this.breathTrailPrefab = p; continue; }
             const n = instantiate(p);
             parent.addChild(n);
             const ps = n.getComponent(ParticleSystem);
@@ -112,7 +117,16 @@ export class Vfx {
             Quat.fromViewUp(q, back, Math.abs(o.dir.y) > 0.95 ? Vec3.UNIT_Z : UP);
             n.setWorldRotation(q);
         }
+        // a directed burst from a sphere-shaped system: switch to a cone for this call only
+        const sh = ps.shapeModule;
+        let prevType = -1, prevAngle = 0;
+        if (o.dir && o.spread !== undefined && sh) {
+            prevType = sh.shapeType; prevAngle = sh.angle;
+            sh.shapeType = 2;   // Cone
+            sh.angle = o.spread;
+        }
         ps.emit(count, 0);
+        if (prevType >= 0) { sh.shapeType = prevType; sh.angle = prevAngle; }
     }
 
     // ---------- shader fire ----------
@@ -131,42 +145,69 @@ export class Vfx {
     private setFire(n: Node, fade: number, seed: number) {
         const a: any = n;
         if (!a.__fp) a.__fp = new Vec4();
-        a.__fp.set(fade, seed, 0, 0);
+        a.__fp.set(fade, seed, 1, 0);          // z = 1: phase from code (these flames move/scale)
         n.getComponent(MeshRenderer).getMaterialInstance(0).setProperty('fireState', a.__fp);
     }
     private setFade(n: Node, fade: number) {
         const a: any = n;
-        if (!a.__fp) a.__fp = new Vec4(fade, 0, 0, 0);
+        if (!a.__fp) a.__fp = new Vec4(fade, 0, 1, 0);
         a.__fp.x = fade;
         n.getComponent(MeshRenderer).getMaterialInstance(0).setProperty('fireState', a.__fp);
     }
 
     // ---- dragon's breath: a fire cone from the mouth to the target; it follows the animated head ----
+    // Flames and sparks shooting out of the mouth come from the VFX_BreathTrail prefab: the same emitters as the
+    // breath preview in FxLab (Station_FIRE_PREVIEW), so whatever is tuned there plays here one to one.
+    // One shared instance serves every dragon (2 draw calls in total, not 2 per breath): its own rate emission is
+    // switched off and each breath emits into it from its mouth with the prefab's rate, exactly as the system
+    // would (rate x dt x simulationSpeed, emitted whenever the counter passes 1). World space: emitted particles
+    // stay where they were born, so one emitter node can be moved from mouth to mouth.
+    private initBreathTrail() {
+        if (this.trail || !this.breathTrailPrefab) return;
+        this.trail = instantiate(this.breathTrailPrefab);
+        this.parent.addChild(this.trail);
+        for (const ps of this.trail.getComponentsInChildren(ParticleSystem)) {
+            this.trailPs.push({ ps, rate: ps.rateOverTime.constant });
+            ps.rateOverTime.constant = 0;
+            ps.play();
+        }
+    }
     breath(from: Vec3, to: Vec3, head: Node = null) {
+        this.initBreathTrail();
         let b = this.breaths.find(x => !x.node.active);
         if (!b) {
             const n = this.fireQuad('breath');
             this.parent.addChild(n);
-            b = { node: n, head: null, from: new Vec3(), to: new Vec3(), len: 0, fade: 1 };
+            b = { node: n, head: null, from: new Vec3(), to: new Vec3(), len: 0, fade: 1, rot: new Quat(), acc: this.trailPs.map(() => 0) };
             this.breaths.push(b);
         }
         b.head = head; b.from.set(from); b.to.set(to); b.len = 0.12; b.fade = 1;
+        for (let i = 0; i < b.acc.length; i++) b.acc[i] = 0;
         b.node.active = true;
         this.setFire(b.node, 1, Math.random() * 10);
         this.placeBreath(b);
         Tween.stopAllByTarget(b);
-        tween(b).to(0.12, { len: 1 }, { easing: 'quadOut', onUpdate: () => this.placeBreath(b) })
-            .to(0.3, { len: 1 }, { onUpdate: () => this.placeBreath(b) })
+        // particles leave the mouth while the cone grows and holds; those already out finish their life
+        tween(b).to(0.12, { len: 1 }, { easing: 'quadOut', onUpdate: () => { this.placeBreath(b); this.trailEmit(b); } })
+            .to(0.3, { len: 1 }, { onUpdate: () => { this.placeBreath(b); this.trailEmit(b); } })
             .to(0.2, { fade: 0 }, { onUpdate: () => { this.placeBreath(b); this.setFade(b.node, b.fade); } })
             .call(() => { b.node.active = false; })
             .start();
-        // embers and smoke along the cone
-        Vec3.subtract(dir, to, from);
-        const dist = Math.max(1, dir.length());
-        dir.multiplyScalar(1 / dist);
-        this.emit('spark', from, 6, { dir, speed: [dist * 1.2, dist * 2.2], size: [0.07, 0.12], life: [0.3, 0.5], color: EMBER });
-        Vec3.scaleAndAdd(tmp, from, dir, dist * 0.7);
-        this.emit('smoke', tmp, 4, { color: SMOKE_DARK, size: [0.6, 1.0], speed: [0.3, 0.8] });
+    }
+    private trailEmit(b: Breath) {
+        if (!this.trail) return;
+        this.trail.setWorldPosition(b.from);
+        this.trail.setWorldRotation(b.rot);
+        const dt = game.deltaTime;
+        for (let i = 0; i < this.trailPs.length; i++) {
+            const t = this.trailPs[i];
+            b.acc[i] += t.rate * dt * t.ps.simulationSpeed;
+            if (b.acc[i] > 1) {
+                const n = Math.floor(b.acc[i]);
+                b.acc[i] -= n;
+                (t.ps as any).emit(n, 0);
+            }
+        }
     }
     private placeBreath(b: Breath) {
         if (b.head && b.head.isValid && b.head.activeInHierarchy) Vec3.transformMat4(b.from, DRAGON_MOUTH, b.head.worldMatrix);
@@ -185,6 +226,10 @@ export class Vfx {
         n.setWorldRotation(q);
         const width = Math.min(2.6, 0.8 + dist * 0.34);
         n.setScale(dist * 1.12 * b.len, width * (0.4 + 0.6 * b.len), 1);
+        // trail emitter frame: in the mouth, shooting along the breath (-Z), up = the cone's screen-up (as the preview)
+        Vec3.negate(back, ax);
+        Vec3.cross(tmp, ay, back);
+        Quat.fromAxes(b.rot, tmp, ay, back);
     }
 
     // ---- ground fire where the breath lands ("residual heat") ----
@@ -208,7 +253,16 @@ export class Vfx {
             .start();
         tmp.set(x, 0.3, z);
         this.emit('spark', tmp, 10, { dir: UP, speed: [1.5, 3.5], size: [0.07, 0.12], life: [0.5, 0.9], color: EMBER });
-        this.emit('smoke', tmp, 5, { color: SMOKE_DARK, size: [0.8, 1.3] });
+        // smoke rises beside and behind the burning unit (away from the camera), so it never covers its front
+        if (this.cam) Vec3.transformQuat(back, Vec3.UNIT_Z, this.cam.worldRotation); else back.set(0, 0, 1);
+        back.y = 0; back.normalize();
+        // behind by >= 0.9: deeper than the smoke material's depth offset (0.5), so the unit still covers it
+        const behind = Math.max(0.9, 0.45 * r);
+        for (let i = 0; i < 3; i++) {
+            const side = (i - 1) * 0.55 * r * 0.5;
+            tmp.set(x - back.x * behind - back.z * side, 0.4, z - back.z * behind + back.x * side);
+            this.emit('smoke', tmp, i === 1 ? 2 : 1, { color: SMOKE_DARK, size: [0.7, 1.1] });
+        }
     }
 
     // ---- dragon nest: steady shader flame + embers/sparks (prefab) at the model's FireAnchor ----
@@ -223,7 +277,8 @@ export class Vfx {
         if (this.nestFire) {
             const n = instantiate(this.nestFire);
             anchor.addChild(n);
-            if (anchor === building) n.setPosition(0, 3.1, 0);
+            // spawn at the flame's base (the flame quad sits at -0.55 in the bowl, its soft base starts a bit above)
+            n.setPosition(0, (anchor === building ? 2.6 : -0.55) + 0.15, 0);
         }
     }
 

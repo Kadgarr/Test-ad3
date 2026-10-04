@@ -1,7 +1,8 @@
 // Procedural fire for VFX: drawn on a quad, no textures. Animated by cc_time (no per-frame script work).
 // All the look is tuned in the material inspector (VFX_FireBreath / VFX_FireNest / VFX_FireGround).
 // USE_CONE: on = breath cone (grows along +X from the mouth), off = upright flame (grows along +Y).
-// fireState (set from code per flame, hidden): x = fade, y = phase seed.
+// fireState (set from code per flame, hidden): x = fade, y = phase seed, z = 1 when the seed comes from code
+// (moving flames: a seed taken from the world position would jump every frame and look like fast flicker).
 // Additive blending: dark edges vanish, overlapping flames add up.
 CCEffect %{
   techniques:
@@ -51,6 +52,8 @@ CCEffect %{
         opacity:      { value: 1.0,  target: alphaParams.x, editor: { displayName: 'Alpha: Opacity', range: [0.0, 2.0, 0.01], slide: true } }
         alphaLow:     { value: 0.04, target: alphaParams.y, editor: { displayName: 'Alpha: Cutoff low', range: [0.0, 1.0, 0.01], slide: true, tooltip: 'Heat below this is fully transparent' } }
         alphaHigh:    { value: 0.16, target: alphaParams.z, editor: { displayName: 'Alpha: Cutoff high', range: [0.0, 1.0, 0.01], slide: true, tooltip: 'Heat above this is fully opaque (softer edges if raised)' } }
+        # --- depth ---
+        depthOffset:  { value: 1.0, target: vertParams.x, editor: { displayName: 'Depth: Offset to camera', range: [0.0, 5.0, 0.05], slide: true, tooltip: 'Pulls the flame toward the camera (world units) so the ground or the nest does not cut it; objects really in front still hide it' } }
         # set from code per flame
         fireState:    { value: [1.0, 0.0, 0.0, 0.0], editor: { visible: false } }
 }%
@@ -65,15 +68,23 @@ CCProgram fire-vs %{
   out vec2 v_uv;
   out float v_seed;
 
+  uniform FireVert {
+    vec4 vertParams;
+  };
+
   vec4 vert () {
     vec4 position;
     CCVertInput(position);
     mat4 matWorld;
     CCGetWorldMatrix(matWorld);
     v_uv = a_texCoord;
-    // flames sharing one material still flicker out of phase: the seed comes from the world position
+    // static flames sharing one material (nests) still flicker out of phase: seed from the world position
     v_seed = fract(sin(dot(matWorld[3].xz, vec2(12.9898, 78.233))) * 43758.5453) * 10.0;
-    return cc_matProj * (cc_matView * matWorld) * position;
+    // depth test stays on; the quad is only pulled toward the camera (view space looks down -Z),
+    // so ground/bowl geometry right behind it no longer cuts it. Ortho camera: the size does not change.
+    vec4 viewPos = cc_matView * (matWorld * position);
+    viewPos.z += vertParams.x;
+    return cc_matProj * viewPos;
   }
 }%
 
@@ -121,7 +132,7 @@ CCProgram fire-fs %{
   }
 
   vec4 frag () {
-    float t = cc_time.x * animParams.x + fireState.y + v_seed;
+    float t = cc_time.x * animParams.x + fireState.y + (fireState.z > 0.5 ? 0.0 : v_seed);
     float ns = animParams.y;
     #if USE_CONE
       float along = v_uv.x;                        // 0 at the mouth, 1 at the far end

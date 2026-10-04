@@ -14,11 +14,8 @@
   ],
   "_states": [
     {
-      "priority": 246,
       "rasterizerState": {},
-      "depthStencilState": {
-        "depthFunc": 7
-      },
+      "depthStencilState": {},
       "blendState": {
         "targets": [
           {}
@@ -27,6 +24,8 @@
     }
   ],
   "_props": [
-    {}
+    {
+      "depthOffset": 1.2
+    }
   ]
 }

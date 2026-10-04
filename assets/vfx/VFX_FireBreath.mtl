@@ -30,21 +30,22 @@
       "midAt": 0.8,
       "hotAt": 0.63,
       "coreAt": 1.03,
-      "rampSoft": 0.45,
-      "intensity": 1.09,
+      "rampSoft": 0.31,
+      "intensity": 0.99,
       "coreStrength": 0.44,
-      "cooling": 0.42,
-      "coreLength": 0.53,
-      "rootWidth": 0.14,
-      "widthCurve": 0.44,
+      "cooling": 0.33,
+      "coreLength": 0.31,
+      "rootWidth": 0.17,
+      "widthCurve": 0.75,
       "wobble": 0.48,
-      "tipStart": 0.64,
-      "speed": 2,
+      "tipStart": 0.49,
+      "speed": 1.5,
       "noiseScale": 1.68,
-      "ragged": 0.68,
-      "baseSoft": 0.08,
+      "ragged": 0.92,
+      "baseSoft": 0.09,
       "alphaLow": 0,
-      "alphaHigh": 0.31
+      "alphaHigh": 0.41,
+      "depthOffset": 0.5
     }
   ]
 }

@@ -1,0 +1,86 @@
+// Particles with a view-space depth offset: technique 0 alpha blend (VFX_smoke), technique 1 additive (nest flames/embers).
+// Same billboard as the builtin particle effect.
+// Smoke billboards near the ground used to be cut by the terrain. The quad is pulled toward the camera by
+// depthOffset (world units) after the builtin particle vertex code: the depth test stays on, so a unit that is
+// really in front of the smoke still covers it, but the ground right behind a puff no longer slices it.
+CCEffect %{
+  techniques:
+  - name: alpha-blend
+    passes:
+    - vert: smoke-vs:vert
+      frag: smoke-fs:frag
+      rasterizerState:
+        cullMode: none
+      depthStencilState:
+        depthTest: true
+        depthWrite: false
+      blendState:
+        targets:
+        - blend: true
+          blendSrc: src_alpha
+          blendDst: one_minus_src_alpha
+          blendSrcAlpha: zero
+          blendDstAlpha: one
+          blendAlphaEq: max
+      properties:
+        mainTexture:       { value: grey }
+        mainTiling_Offset: { value: [1, 1, 0, 0] }
+        tintColor:         { value: [0.5, 0.5, 0.5, 0.5], editor: { type: color } }
+        depthOffset:       { value: 0.5, target: smokeParams.x, editor: { displayName: 'Depth: Offset to camera', range: [0.0, 3.0, 0.05], slide: true, tooltip: 'Pulls the puffs toward the camera (world units) so the ground does not cut them. Keep it smaller than the distance between the smoke and the unit it rises behind' } }
+  # technique 1: additive (glowing particles: nest flames, embers) with the same depth offset
+  - name: add
+    passes:
+    - vert: smoke-vs:vert
+      frag: smoke-fs:frag
+      rasterizerState:
+        cullMode: none
+      depthStencilState:
+        depthTest: true
+        depthWrite: false
+      blendState:
+        targets:
+        - blend: true
+          blendSrc: src_alpha
+          blendDst: one
+          blendSrcAlpha: src_alpha
+          blendDstAlpha: one
+      properties:
+        mainTexture:       { value: grey }
+        mainTiling_Offset: { value: [1, 1, 0, 0] }
+        tintColor:         { value: [0.5, 0.5, 0.5, 0.5], editor: { type: color } }
+        depthOffset:       { value: 1.0, target: smokeParams.x, editor: { displayName: 'Depth: Offset to camera', range: [0.0, 3.0, 0.05], slide: true, tooltip: 'Pulls the particles toward the camera (world units) so nearby geometry (a nest bowl) does not cut them' } }
+}%
+
+CCProgram smoke-vs %{
+  #include <builtin/internal/particle-vs-legacy>
+
+  uniform SmokeVert {
+    vec4 smokeParams;
+  };
+
+  vec4 vert () {
+    vec4 clip = lpvs_main();
+    // view-space z += offset  ->  clip.z += proj[2][2] * offset (exact for the ortho camera)
+    clip.z += cc_matProj[2][2] * smokeParams.x * clip.w;
+    return clip;
+  }
+}%
+
+CCProgram smoke-fs %{
+  precision mediump float;
+  #include <legacy/output>
+  #include <builtin/internal/embedded-alpha>
+
+  in vec2 uv;
+  in vec4 color;
+
+  uniform sampler2D mainTexture;
+  uniform FragConstants {
+    vec4 tintColor;
+  };
+
+  vec4 frag () {
+    vec4 col = 2.0 * color * tintColor * CCSampleWithAlphaSeparated(mainTexture, uv);
+    return CCFragOutput(col);
+  }
+}%
