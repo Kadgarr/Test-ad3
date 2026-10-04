@@ -130,7 +130,9 @@ export class Director extends Component {
         this.sim.fx = this.vfx;
         this.sim.castles = [this.pCastle, this.eCastle];
 
-        this.hud = new Hud(scene, this.rig.cam);
+        // the UI is authored in the scene (Canvas with the Hud component); the Director only feeds it
+        this.hud = scene.getComponentInChildren(Hud);
+        this.hud.init(this.rig.cam);
         this.hud.onCard = (i) => this.pick(i);
         this.hud.onCta = () => AdAdapter.cta();
         this.hud.onRetry = () => director.loadScene(director.getScene().name);
@@ -299,11 +301,6 @@ export class Director extends Component {
         if (u.def.id === 'dragon') {
             this.dragon = u;
             this.dragonDown = false;
-            this.hud.addTag('AIR', '#9fe3ff', (out) => {
-                if (!u.alive) return false;
-                out.set(u.x, LAYOUT.airHeight + 2.2, u.z);
-                return true;
-            });
         }
     }
 
@@ -514,7 +511,7 @@ export class Director extends Component {
         this.showRing(this.pSlots[ch.slot], true);
         const infos: CardInfo[] = ch.cards.map(c => {
             const b = BUILDINGS[c.building];
-            return { title: b.title, tag: b.tag, color: UNITS[b.unit].color };
+            return { title: b.title, tag: b.tag, unit: b.unit, color: UNITS[b.unit].color };
         });
         this.hud.showCards(infos, ch.prompt);
         this.targetScale = TIMING.slowmo;

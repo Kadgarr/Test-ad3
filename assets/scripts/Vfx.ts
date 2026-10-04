@@ -143,12 +143,14 @@ export class Vfx {
     // The look of each fire lives in its material (inspector). Short-lived flames (breath, ground fire) fade out,
     // so they own a material instance with their state (x = fade, y = seed); the nest flame keeps the shared material.
     private setFire(n: Node, fade: number, seed: number) {
+        if (!n.isValid) return;   // tweens can outlive the scene (restart / scene switch)
         const a: any = n;
         if (!a.__fp) a.__fp = new Vec4();
         a.__fp.set(fade, seed, 1, 0);          // z = 1: phase from code (these flames move/scale)
         n.getComponent(MeshRenderer).getMaterialInstance(0).setProperty('fireState', a.__fp);
     }
     private setFade(n: Node, fade: number) {
+        if (!n.isValid) return;
         const a: any = n;
         if (!a.__fp) a.__fp = new Vec4(fade, 0, 1, 0);
         a.__fp.x = fade;
@@ -191,11 +193,11 @@ export class Vfx {
         tween(b).to(0.12, { len: 1 }, { easing: 'quadOut', onUpdate: () => { this.placeBreath(b); this.trailEmit(b); } })
             .to(0.3, { len: 1 }, { onUpdate: () => { this.placeBreath(b); this.trailEmit(b); } })
             .to(0.2, { fade: 0 }, { onUpdate: () => { this.placeBreath(b); this.setFade(b.node, b.fade); } })
-            .call(() => { b.node.active = false; })
+            .call(() => { if (b.node.isValid) b.node.active = false; })
             .start();
     }
     private trailEmit(b: Breath) {
-        if (!this.trail) return;
+        if (!this.trail || !this.trail.isValid) return;
         this.trail.setWorldPosition(b.from);
         this.trail.setWorldRotation(b.rot);
         const dt = game.deltaTime;
@@ -210,6 +212,7 @@ export class Vfx {
         }
     }
     private placeBreath(b: Breath) {
+        if (!b.node.isValid) return;
         if (b.head && b.head.isValid && b.head.activeInHierarchy) Vec3.transformMat4(b.from, DRAGON_MOUTH, b.head.worldMatrix);
         Vec3.subtract(ax, b.to, b.from);
         const dist = Math.max(0.5, ax.length());
@@ -246,10 +249,11 @@ export class Vfx {
         const s = { k: 0, f: 1 };
         this.setFire(n, 1, Math.random() * 10);
         n.setScale(0.01, 0.01, 1);
-        tween(s).to(0.15, { k: 1 }, { easing: 'quadOut', onUpdate: () => n.setScale(r * 0.75 * s.k, r * 0.95 * s.k, 1) })
+        // the node may be gone if the scene is left mid-tween: every step checks it
+        tween(s).to(0.15, { k: 1 }, { easing: 'quadOut', onUpdate: () => { if (n.isValid) n.setScale(r * 0.75 * s.k, r * 0.95 * s.k, 1); } })
             .delay(0.35)
-            .to(0.6, { f: 0 }, { onUpdate: () => { this.setFade(n, s.f); n.setScale(r * 0.75, r * 0.95 * (0.6 + 0.4 * s.f), 1); } })
-            .call(() => { n.active = false; })
+            .to(0.6, { f: 0 }, { onUpdate: () => { if (!n.isValid) return; this.setFade(n, s.f); n.setScale(r * 0.75, r * 0.95 * (0.6 + 0.4 * s.f), 1); } })
+            .call(() => { if (n.isValid) n.active = false; })
             .start();
         tmp.set(x, 0.3, z);
         this.emit('spark', tmp, 10, { dir: UP, speed: [1.5, 3.5], size: [0.07, 0.12], life: [0.5, 0.9], color: EMBER });
