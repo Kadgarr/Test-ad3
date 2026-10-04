@@ -5,6 +5,20 @@ import { UnitDef, UNITS, DMG_MULT, PLAYER, ENEMY, LAYOUT, DmgType } from './Conf
 import { Pool, unitLook, projLook } from './Greybox';
 import { GameEvents, EV } from './Events';
 import { Rig, AnimState, stepAnim } from './UnitAnim';
+import { DRAGON_MOUTH } from './Vfx';
+
+// Visual hooks (implemented by Vfx). An interface keeps the simulation free of rendering code.
+export interface SimFx {
+    charge(tip: Vec3, k: number): void;
+    orbStep(pos: Vec3): void;
+    orbHit(pos: Vec3): void;
+    arrowHit(pos: Vec3): void;
+    breath(from: Vec3, to: Vec3, head: Node): void;
+    melee(pos: Vec3, heavy: boolean): void;
+    death(x: number, z: number): void;
+}
+
+const STAFF_TIP = new Vec3(0, 0.87, 0);   // crystal on the mage's staff, in the Staff node's space
 
 export class Unit {
     def: UnitDef = null;
@@ -56,6 +70,7 @@ export class Spawner {
 // Pooled projectile record (no per-shot allocations).
 class Proj {
     node: Node = null;
+    kind = '';
     side = 0;
     dmg = 0;
     dmgType: DmgType = 'melee';
@@ -76,11 +91,14 @@ export class LaneSim {
     spawnEnabled = [true, true];
     castleMult = [1, 1];   // per attacking side, damage vs castles
     comeback = [1, 1];     // catch-up multiplier for the outnumbered side (damage dealt x, damage taken /)
-    combat = true;         // false = battle frozen (end card / fail): no spawns, no attacks
+    combat = true;
+    fx: SimFx = null;      // visual hooks, set by the Director         // false = battle frozen (end card / fail): no spawns, no attacks
 
     private aliveCount = [0, 0]; // kept on spawn/kill instead of recounting the list
     private freeProjs: Proj[] = [];
     private v = new Vec3();
+    private tip = new Vec3();
+    private hitPos = new Vec3();
     private one: Vec3;
     private tiny = new Vec3(0.01, 0.01, 0.01);
     private squash = new Vec3(1.06, 0.9, 1.06);
@@ -154,6 +172,11 @@ export class LaneSim {
     // Animation clocks for one unit; the pose itself is applied in place().
     private animate(u: Unit, dt: number, moved: boolean) {
         stepAnim(u.anim, u.rig, dt, moved, u.engaged, u.cd, u.def.cooldown, u.def.speed);
+        const st = u.rig.staff.n;
+        if (this.fx && st && u.anim.cock > 0.05) {   // arcane charge grows on the staff while winding up
+            Vec3.transformMat4(this.tip, STAFF_TIP, st.worldMatrix);
+            this.fx.charge(this.tip, u.anim.cock);
+        }
     }
 
     // A building squashes a little each time it produces a unit (skipped while it is still rising).
@@ -229,7 +252,10 @@ export class LaneSim {
         u.anim.atk = 0;      // strike pose starts on the damage frame
         u.anim.cock = 0;
         if (def.projectile) { this.fire(u, t, c); return; }
-        if (t) this.hitUnit(u.side, def.dmg, def.dmgType, def.splash || 0, t);
+        if (t) {
+            if (this.fx) this.fx.melee(this.hitPos.set(t.x, t.def.layer === 'air' ? LAYOUT.airHeight + 0.8 : 0.9, t.z), def.dmg >= 20);
+            this.hitUnit(u.side, def.dmg, def.dmgType, def.splash || 0, t);
+        }
         else this.hitCastle(u.side, def.dmg, def.dmgType, c);
     }
 
@@ -237,6 +263,7 @@ export class LaneSim {
         const kind = u.def.projectile;
         const p = this.freeProjs.pop() || new Proj();
         p.node = this.pool.get('p_' + kind, () => projLook(kind));
+        p.kind = kind;
         p.side = u.side;
         p.dmg = u.def.dmg;
         p.dmgType = u.def.dmgType;
@@ -245,10 +272,11 @@ export class LaneSim {
         p.castle = c;
         p.speed = u.def.projSpeed || 14;
         p.pos.set(u.x, (u.def.layer === 'air' ? LAYOUT.airHeight : 0) + 0.9, u.z);
-        if (u.rig.style === 'breath') p.pos.set(u.x + u.face * 2.3, LAYOUT.airHeight + 1.7, u.z); // from the dragon's mouth
+        if (u.rig.style === 'breath' && u.rig.head.n) Vec3.transformMat4(p.pos, DRAGON_MOUTH, u.rig.head.n.worldMatrix); // from the mouth
         p.node.setPosition(p.pos);
         if (t) this.aimAtUnit(p);
         else p.aim.set(c.x + (c.side === ENEMY ? -1.6 : 1.6), 1.4, u.z * 0.5);
+        if (this.fx && u.rig.style === 'breath') this.fx.breath(p.pos, p.aim, u.rig.head.n);
         this.projs.push(p);
     }
 
@@ -279,6 +307,10 @@ export class LaneSim {
                 const t = p.target, c = p.castle;
                 const side = p.side, dmg = p.dmg, type = p.dmgType, splash = p.splash;
                 const ax = p.aim.x, az = p.aim.z;
+                if (this.fx) {
+                    if (p.kind === 'orb') this.fx.orbHit(p.aim);
+                    else if (p.kind === 'arrow') this.fx.arrowHit(p.aim);
+                }
                 this.recycle(p);
                 if (t && t.alive) this.hitUnit(side, dmg, type, splash, t);
                 else if (!t && c) this.hitCastle(side, dmg, type, c);
@@ -290,6 +322,7 @@ export class LaneSim {
             p.pos.add(this.v);
             p.node.setPosition(p.pos);
             p.node.lookAt(p.aim);
+            if (this.fx && p.kind === 'orb') this.fx.orbStep(p.pos);
             list[w++] = p;
         }
         list.length = w;
@@ -332,6 +365,7 @@ export class LaneSim {
         this.aliveCount[e.side]--;
         const n = e.node;
         e.rig.die(n, e.def.layer === 'air', this.tiny, () => this.pool.put(n));
+        if (this.fx && e.def.layer !== 'air') this.fx.death(e.x, e.z);
         GameEvents.emit(EV.UNIT_DIED, e);
     }
 

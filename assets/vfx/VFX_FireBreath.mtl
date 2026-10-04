@@ -1,0 +1,50 @@
+{
+  "__type__": "cc.Material",
+  "_name": "",
+  "_objFlags": 0,
+  "__editorExtras__": {},
+  "_native": "",
+  "_effectAsset": {
+    "__uuid__": "196d6635-a813-470f-8ece-fb26d8c1b2e0",
+    "__expectedType__": "cc.EffectAsset"
+  },
+  "_techIdx": 0,
+  "_defines": [
+    {
+      "USE_CONE": true
+    }
+  ],
+  "_states": [
+    {
+      "rasterizerState": {},
+      "depthStencilState": {},
+      "blendState": {
+        "targets": [
+          {}
+        ]
+      }
+    }
+  ],
+  "_props": [
+    {
+      "midAt": 0.8,
+      "hotAt": 0.63,
+      "coreAt": 1.03,
+      "rampSoft": 0.45,
+      "intensity": 1.09,
+      "coreStrength": 0.44,
+      "cooling": 0.42,
+      "coreLength": 0.53,
+      "rootWidth": 0.14,
+      "widthCurve": 0.44,
+      "wobble": 0.48,
+      "tipStart": 0.64,
+      "speed": 2,
+      "noiseScale": 1.68,
+      "ragged": 0.68,
+      "baseSoft": 0.08,
+      "alphaLow": 0,
+      "alphaHigh": 0.31
+    }
+  ]
+}

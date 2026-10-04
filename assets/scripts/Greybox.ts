@@ -259,8 +259,7 @@ export function castleLook(side: number): Node {
 export function projLook(kind: string): Node {
     const n = new Node('P_' + kind);
     if (kind === 'arrow') part(n, 'box', '#5a3d24', [0, 0, 0], [0.07, 0.07, 0.8]);
-    else if (kind === 'orb') part(n, 'sphere', '#6fe3ff', [0, 0, 0], [0.42, 0.42, 0.42], 0, true);
-    else part(n, 'sphere', '#ff8a1f', [0, 0, 0], [0.75, 0.75, 0.75], 0, true);
+    // orb and fire are drawn by the particle VFX (Vfx.orbStep / Vfx.breath): the node is only a carrier
     return n;
 }
 

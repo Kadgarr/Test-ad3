@@ -12,6 +12,7 @@ import { Hud, CardInfo } from './Hud';
 import { Destruction } from './Destruction';
 import { AdAdapter } from './AdAdapter';
 import { GameEvents, EV } from './Events';
+import { Vfx } from './Vfx';
 const { ccclass, property } = _decorator;
 
 interface SlotView { side: number; pos: Vec3; ring: Node; building: Node; buildingId?: string; spawner: Spawner; }
@@ -45,6 +46,18 @@ export class Director extends Component {
     @property({ type: [Prefab], tooltip: 'glb model prefabs; matched to units/buildings by prefab name' })
     modelPrefabs: Prefab[] = [];
 
+    @property({ type: Material, tooltip: "Dragon's breath (assets/vfx/VFX_FireBreath.mtl)" })
+    breathFire: Material = null;
+
+    @property({ type: Material, tooltip: 'Dragon nest flame (assets/vfx/VFX_FireNest.mtl)' })
+    nestFire: Material = null;
+
+    @property({ type: Material, tooltip: 'Ground fire where the breath lands (assets/vfx/VFX_FireGround.mtl)' })
+    groundFire: Material = null;
+
+    @property({ type: [Prefab], tooltip: 'Particle VFX prefabs (assets/vfx): Glow, Star, Spark, Flame, Smoke, NestFire' })
+    vfxPrefabs: Prefab[] = [];
+
     @property({ tooltip: 'Log state transitions to the console' })
     logStates = true;
 
@@ -54,6 +67,8 @@ export class Director extends Component {
     private hud: Hud = null;
     private rig: CameraRig = null;
     private destruction = new Destruction();
+    private vfx: Vfx = null;
+    private smoking = [0, 0];   // castle smoke level: 0 none, 1 light, 2 heavy
     private pSlots: SlotView[] = [];
     private eSlots: SlotView[] = [];
     private pCastle: Castle = null;
@@ -80,9 +95,17 @@ export class Director extends Component {
     private threatStartHp = 0;
 
     start() {
-        // Dev hook (editor preview only, stripped from builds): ?showcase opens the animation showcase scene.
+        // Dev hooks (editor preview only, stripped from builds): ?showcase = animation showcase, ?vfx = VFX showcase.
         if (PREVIEW && typeof location !== 'undefined' && location.search.indexOf('showcase') >= 0) {
             director.loadScene('AnimShowcase');
+            return;
+        }
+        if (PREVIEW && typeof location !== 'undefined' && location.search.indexOf('lab') >= 0) {
+            director.loadScene('FxLab');   // ?lab opens the authored FX lab scene
+            return;
+        }
+        if (PREVIEW && typeof location !== 'undefined' && location.search.indexOf('vfx') >= 0) {
+            director.loadScene('VfxShowcase');   // ?vfx opens the VFX showcase
             return;
         }
         if (!this.litMaterial || !this.unlitMaterial) {
@@ -102,6 +125,9 @@ export class Director extends Component {
         this.pool = new Pool(this.world);
         this.sim = new LaneSim(this.pool);
         this.buildArena();
+        this.vfx = new Vfx(this.world, this.vfxPrefabs, { breath: this.breathFire, nest: this.nestFire, ground: this.groundFire });
+        this.vfx.setCamera(this.rig.node);
+        this.sim.fx = this.vfx;
         this.sim.castles = [this.pCastle, this.eCastle];
 
         this.hud = new Hud(scene, this.rig.cam);
@@ -247,13 +273,14 @@ export class Director extends Component {
         for (const s of this.pSlots.concat(this.eSlots)) {
             if (s.building && s.buildingId) s.building.setRotationFromEuler(0, facadeYaw(s.buildingId, portrait), 0);
         }
+        if (this.vfx) this.vfx.faceCamera();   // flames turn with the camera
         if (this.hud) this.hud.layout();
     }
 
     // ---------- event handlers ----------
 
     private onCastleHp(c: Castle, delta: number) {
-        if (delta > 0) this.hitFeedback(c);
+        if (delta > 0) { this.hitFeedback(c); this.updateSmoke(c); }
         if (c === this.pCastle) {
             if (c.hp <= 0) {
                 if (this.state !== 'FAIL' && this.state !== 'FINALE' && this.state !== 'END') this.citadelFalls();
@@ -290,11 +317,11 @@ export class Director extends Component {
 
     private onImmune(u: Unit) {
         this.hud.popup('IMMUNE', tmpV.set(u.x, 2.6, u.z), '#ffe14d');
-        this.fx(tmpV.set(u.x, 1.2, u.z), '#fff3a0', 0.8, 0.18);
+        this.vfx.immune(tmpV.set(u.x, u.def.layer === 'air' ? LAYOUT.airHeight + 0.8 : 1.2, u.z));
     }
 
     private onSplash(x: number, z: number, r: number) {
-        this.fx(tmpV.set(x, 0.3, z), '#ff8a1f', r * 2, 0.35);
+        this.vfx.fireSplash(x, z, r);
     }
 
     // Numbers changed (spawn/death) -> recompute the catch-up bonus once, not every frame.
@@ -313,6 +340,7 @@ export class Director extends Component {
         this.world.addChild(b);
         b.setPosition(slot.pos);
         slot.buildingId = id;
+        if (id === 'dragon_nest') this.vfx.attachNestFire(b);
         b.setRotationFromEuler(0, facadeYaw(id, !!this.portrait), 0);   // facade toward the screen
         if (anim) {
             b.setScale(0.7, 0.02, 0.7);
@@ -321,7 +349,7 @@ export class Director extends Component {
                 .to(0.12, { scale: ONE }, { easing: 'sineOut' })
                 .call(() => { (b as any).__built = true; })
                 .start();
-            this.fx(tmpV.set(slot.pos.x, 0.8, slot.pos.z), '#ffffff', 3.2, 0.3);
+            this.vfx.buildPoof(slot.pos);
         } else (b as any).__built = true;
         slot.building = b;
         if (slot.side === PLAYER && !def.maxCount) this.burst(slot, def.unit);
@@ -359,16 +387,24 @@ export class Director extends Component {
         if (on) tween(r).to(0.4, { scale: new Vec3(1.12, 1, 1.12) }).to(0.4, { scale: ONE }).union().repeatForever().start();
     }
 
+    // Small scripted flash (glow + star particles).
     private fx(pos: Vec3, hex: string, size: number, dur: number) {
-        const n = this.pool.get('fx_' + hex, () => fxLook(hex));
-        n.setPosition(pos);
-        n.setScale(0.2, 0.2, 0.2);
-        Tween.stopAllByTarget(n);
-        tween(n)
-            .to(dur * 0.5, { scale: new Vec3(size, size, size) }, { easing: 'quadOut' })
-            .to(dur * 0.5, { scale: new Vec3(0.01, 0.01, 0.01) })
-            .call(() => this.pool.put(n))
-            .start();
+        this.vfx.flash(pos, new Color().fromHEX(hex), size * 0.9);
+    }
+
+    // Damaged castles smoke: one timer per castle, its density follows the HP level.
+    private updateSmoke(c: Castle) {
+        const lvl = c.frac < 0.35 ? 2 : c.frac < 0.7 ? 1 : 0;
+        if (lvl <= this.smoking[c.side]) return;
+        const first = this.smoking[c.side] === 0;
+        this.smoking[c.side] = lvl;
+        if (!first) return;
+        const tick = () => {
+            if (!c.node.activeInHierarchy) { this.unschedule(tick); return; }
+            this.vfx.castleSmoke(tmpV.set(c.x + (Math.random() - 0.5) * 3, 2.3 + Math.random(), (Math.random() - 0.5) * 3.4),
+                this.smoking[c.side] === 2);
+        };
+        this.schedule(tick, 0.2);
     }
 
     // Visual reaction to a castle hit (HUD bar flash is handled by the Hud's own listener).
@@ -376,8 +412,7 @@ export class Director extends Component {
         if (this.clock >= this.hitFxAt[c.side]) {
             this.hitFxAt[c.side] = this.clock + 0.12;
             const face = c.side === ENEMY ? -LAYOUT.castleHalf : LAYOUT.castleHalf;
-            this.fx(tmpV.set(c.x + face, 0.6 + Math.random() * 2.2, (Math.random() - 0.5) * 3.2),
-                c.side === ENEMY ? '#ffd27a' : '#ff6a5a', 0.9, 0.2);
+            this.vfx.castleHit(tmpV.set(c.x + face, 0.6 + Math.random() * 2.2, (Math.random() - 0.5) * 3.2), c.side === ENEMY);
             const n = c.node;
             Tween.stopAllByTarget(n);
             n.setScale(1, 1, 1);

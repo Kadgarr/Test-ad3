@@ -1,0 +1,152 @@
+// Procedural fire for VFX: drawn on a quad, no textures. Animated by cc_time (no per-frame script work).
+// All the look is tuned in the material inspector (VFX_FireBreath / VFX_FireNest / VFX_FireGround).
+// USE_CONE: on = breath cone (grows along +X from the mouth), off = upright flame (grows along +Y).
+// fireState (set from code per flame, hidden): x = fade, y = phase seed.
+// Additive blending: dark edges vanish, overlapping flames add up.
+CCEffect %{
+  techniques:
+  - name: transparent
+    passes:
+    - vert: fire-vs:vert
+      frag: fire-fs:frag
+      priority: max - 10
+      rasterizerState:
+        cullMode: none
+      depthStencilState:
+        depthTest: true
+        depthWrite: false
+      blendState:
+        targets:
+        - blend: true
+          blendSrc: src_alpha
+          blendDst: one
+          blendSrcAlpha: zero
+          blendDstAlpha: one
+      properties:
+        # --- colour ramp: edge -> mid -> hot -> core ---
+        edgeColor:    { value: [0.62, 0.08, 0.03, 1.0], editor: { type: color, displayName: 'Color 1 Edge (red)', tooltip: 'Coolest part: outer edges and the tip' } }
+        midColor:     { value: [1.0, 0.42, 0.06, 1.0],  editor: { type: color, displayName: 'Color 2 Mid (orange)' } }
+        hotColor:     { value: [1.0, 0.82, 0.25, 1.0],  editor: { type: color, displayName: 'Color 3 Hot (yellow)' } }
+        coreColor:    { value: [1.0, 0.98, 0.86, 1.0], editor: { type: color, displayName: 'Color 4 Core (white)', tooltip: 'Hottest centre' } }
+        midAt:        { value: 0.25, target: rampParams.x, editor: { displayName: 'Ramp: Orange from', range: [0.0, 1.0, 0.01], slide: true, tooltip: 'Heat where red turns orange' } }
+        hotAt:        { value: 0.5,  target: rampParams.y, editor: { displayName: 'Ramp: Yellow from', range: [0.0, 1.0, 0.01], slide: true } }
+        coreAt:       { value: 0.92, target: rampParams.z, editor: { displayName: 'Ramp: White from', range: [0.0, 1.2, 0.01], slide: true, tooltip: 'Higher = less white' } }
+        rampSoft:     { value: 0.12, target: rampParams.w, editor: { displayName: 'Ramp: Blend width', range: [0.01, 0.5, 0.01], slide: true } }
+        # --- heat (brightness) ---
+        intensity:    { value: 1.0,  target: heatParams.x, editor: { displayName: 'Heat: Intensity', range: [0.0, 3.0, 0.01], slide: true, tooltip: 'Overall heat: pushes the whole flame toward yellow/white' } }
+        coreStrength: { value: 0.42, target: heatParams.y, editor: { displayName: 'Heat: Core strength', range: [0.0, 1.5, 0.01], slide: true, tooltip: 'Extra heat in the centre line' } }
+        cooling:      { value: 0.5,  target: heatParams.z, editor: { displayName: 'Heat: Cooling to tip', range: [0.0, 1.0, 0.01], slide: true, tooltip: 'How much the flame cools toward its far end' } }
+        coreLength:   { value: 0.6,  target: heatParams.w, editor: { displayName: 'Heat: Core length', range: [0.05, 1.0, 0.01], slide: true, tooltip: 'How far the hot core reaches from the source' } }
+        # --- shape ---
+        rootWidth:    { value: 0.45, target: shapeParams.x, editor: { displayName: 'Shape: Root width', range: [0.0, 1.0, 0.01], slide: true, tooltip: 'Width at the source (cone: at the mouth; flame: pinch at the base)' } }
+        widthCurve:   { value: 0.65, target: shapeParams.y, editor: { displayName: 'Shape: Width curve', range: [0.1, 2.0, 0.01], slide: true, tooltip: 'Cone: <1 opens fast. Flame: >1 sharper tip' } }
+        wobble:       { value: 0.5,  target: shapeParams.z, editor: { displayName: 'Shape: Wobble', range: [0.0, 1.0, 0.01], slide: true, tooltip: 'Noise on the width (flicker of the silhouette)' } }
+        tipStart:     { value: 0.5,  target: shapeParams.w, editor: { displayName: 'Shape: Tip fade start', range: [0.0, 1.0, 0.01], slide: true, tooltip: 'Where the far end starts to break up' } }
+        # --- motion and edges ---
+        speed:        { value: 1.0,  target: animParams.x, editor: { displayName: 'Motion: Speed', range: [0.0, 5.0, 0.01], slide: true, tooltip: 'Scroll speed of the noise (how fast the fire licks)' } }
+        noiseScale:   { value: 1.0,  target: animParams.y, editor: { displayName: 'Motion: Noise scale', range: [0.2, 4.0, 0.01], slide: true, tooltip: 'Bigger = smaller, busier tongues' } }
+        ragged:       { value: 0.55, target: animParams.z, editor: { displayName: 'Edges: Raggedness', range: [0.0, 1.5, 0.01], slide: true, tooltip: 'How torn the side edges are' } }
+        baseSoft:     { value: 0.12, target: animParams.w, editor: { displayName: 'Edges: Base softness', range: [0.0, 0.5, 0.01], slide: true, tooltip: 'Soft fade at the source so the quad has no straight bottom edge' } }
+        # --- alpha ---
+        opacity:      { value: 1.0,  target: alphaParams.x, editor: { displayName: 'Alpha: Opacity', range: [0.0, 2.0, 0.01], slide: true } }
+        alphaLow:     { value: 0.04, target: alphaParams.y, editor: { displayName: 'Alpha: Cutoff low', range: [0.0, 1.0, 0.01], slide: true, tooltip: 'Heat below this is fully transparent' } }
+        alphaHigh:    { value: 0.16, target: alphaParams.z, editor: { displayName: 'Alpha: Cutoff high', range: [0.0, 1.0, 0.01], slide: true, tooltip: 'Heat above this is fully opaque (softer edges if raised)' } }
+        # set from code per flame
+        fireState:    { value: [1.0, 0.0, 0.0, 0.0], editor: { visible: false } }
+}%
+
+CCProgram fire-vs %{
+  precision highp float;
+  #include <legacy/input>
+  #include <builtin/uniforms/cc-global>
+  #include <legacy/decode-base>
+  #include <legacy/local-batch>
+
+  out vec2 v_uv;
+  out float v_seed;
+
+  vec4 vert () {
+    vec4 position;
+    CCVertInput(position);
+    mat4 matWorld;
+    CCGetWorldMatrix(matWorld);
+    v_uv = a_texCoord;
+    // flames sharing one material still flicker out of phase: the seed comes from the world position
+    v_seed = fract(sin(dot(matWorld[3].xz, vec2(12.9898, 78.233))) * 43758.5453) * 10.0;
+    return cc_matProj * (cc_matView * matWorld) * position;
+  }
+}%
+
+CCProgram fire-fs %{
+  precision highp float;
+  #include <builtin/uniforms/cc-global>
+  #include <legacy/output-standard>
+
+  in vec2 v_uv;
+  in float v_seed;
+
+  uniform FireConstants {
+    vec4 edgeColor;
+    vec4 midColor;
+    vec4 hotColor;
+    vec4 coreColor;
+    vec4 rampParams;
+    vec4 heatParams;
+    vec4 shapeParams;
+    vec4 animParams;
+    vec4 alphaParams;
+    vec4 fireState;
+  };
+
+  float hash (vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+  float noise (vec2 p) {
+    vec2 i = floor(p);
+    vec2 f = fract(p);
+    vec2 u = f * f * (3.0 - 2.0 * f);
+    return mix(mix(hash(i), hash(i + vec2(1.0, 0.0)), u.x),
+               mix(hash(i + vec2(0.0, 1.0)), hash(i + vec2(1.0, 1.0)), u.x), u.y);
+  }
+  float fbm (vec2 p) {
+    float v = 0.0;
+    float a = 0.5;
+    for (int i = 0; i < 3; i++) { v += a * noise(p); p *= 2.03; a *= 0.5; }
+    return v;
+  }
+  vec3 ramp (float h) {
+    float s = rampParams.w;
+    vec3 c = mix(edgeColor.rgb, midColor.rgb, smoothstep(rampParams.x - s, rampParams.x + s, h));
+    c = mix(c, hotColor.rgb, smoothstep(rampParams.y - s, rampParams.y + s, h));
+    c = mix(c, coreColor.rgb, smoothstep(rampParams.z - s, rampParams.z + s, h));
+    return c;
+  }
+
+  vec4 frag () {
+    float t = cc_time.x * animParams.x + fireState.y + v_seed;
+    float ns = animParams.y;
+    #if USE_CONE
+      float along = v_uv.x;                        // 0 at the mouth, 1 at the far end
+      float across = v_uv.y - 0.5;
+    #else
+      float along = v_uv.y;                        // 0 at the base, 1 at the tip
+      float across = v_uv.x - 0.5;
+    #endif
+    float n = fbm(vec2(across * 4.0, along * 3.0 - t * 2.4) * ns);
+    float n2 = fbm(vec2(across * 8.0 + 3.1, along * 6.0 - t * 4.1) * ns);
+    float wob = (1.0 - shapeParams.z * 0.5) + shapeParams.z * n;
+    #if USE_CONE
+      float width = 0.5 * (shapeParams.x + (1.0 - shapeParams.x) * pow(along, shapeParams.y)) * wob;
+    #else
+      float width = 0.5 * pow(max(1.0 - along, 0.0), shapeParams.y) * wob * mix(shapeParams.x, 1.0, smoothstep(0.0, 0.3, along));
+    #endif
+    float d = abs(across) / max(width, 0.001);
+    float body = 1.0 - smoothstep(0.3, 1.0, d + (n2 - 0.5) * animParams.z);
+    float len = 1.0 - smoothstep(shapeParams.w, 1.0, along + (n - 0.5) * 0.35);
+    float core = (1.0 - smoothstep(0.0, 0.55, d)) * (1.0 - smoothstep(0.0, heatParams.w, along));
+    float heat = clamp((body * len * (0.45 + 0.6 * n2) * (1.0 - heatParams.z * along) + core * heatParams.y) * heatParams.x, 0.0, 1.0);
+    // soft, ragged base: no straight edge where the quad starts
+    float base = smoothstep(0.0, max(animParams.w, 0.001), along + (n - 0.5) * 0.08);
+    float alpha = smoothstep(alphaParams.y, max(alphaParams.z, alphaParams.y + 0.001), heat) * base * alphaParams.x * fireState.x;
+    vec4 o = vec4(SRGBToLinear(ramp(heat)), alpha);
+    return CCFragOutput(o);
+  }
+}%
