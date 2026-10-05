@@ -6,6 +6,7 @@ import { Pool, unitLook, projLook } from './Greybox';
 import { GameEvents, EV } from './Events';
 import { Rig, AnimState, stepAnim } from './UnitAnim';
 import { DRAGON_MOUTH } from './Vfx';
+import { Sound } from './Sound';
 
 // Visual hooks (implemented by Vfx). An interface keeps the simulation free of rendering code.
 export interface SimFx {
@@ -254,6 +255,7 @@ export class LaneSim {
         if (def.projectile) { this.fire(u, t, c); return; }
         if (t) {
             if (this.fx) this.fx.melee(this.hitPos.set(t.x, t.def.layer === 'air' ? LAYOUT.airHeight + 0.8 : 0.9, t.z), def.dmg >= 20);
+            Sound.play(def.dmg >= 20 ? 'hit' : 'sword', def.dmg >= 20 ? 0.7 : 1);
             this.hitUnit(u.side, def.dmg, def.dmgType, def.splash || 0, t);
         }
         else this.hitCastle(u.side, def.dmg, def.dmgType, c);
@@ -277,6 +279,7 @@ export class LaneSim {
         if (t) this.aimAtUnit(p);
         else p.aim.set(c.x + (c.side === ENEMY ? -1.6 : 1.6), 1.4, u.z * 0.5);
         if (this.fx && u.rig.style === 'breath') this.fx.breath(p.pos, p.aim, u.rig.head.n);
+        Sound.play(kind === 'arrow' ? 'bow' : kind === 'orb' ? 'magic' : 'fire');
         this.projs.push(p);
     }
 

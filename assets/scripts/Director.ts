@@ -1,7 +1,7 @@
 // Scenario state machine. Event-driven: reacts to GameEvents (castle HP, unit spawn/death)
 // and to state timers (scheduleOnce with an epoch guard). It also owns the single game tick:
 // update() only scales time, steps LaneSim, debris and world tags — no polling of game state.
-import { _decorator, Component, Node, Camera, Color, Layers, DirectionalLight, Material, Prefab, director, Vec3, tween, Tween, view, ResolutionPolicy } from 'cc';
+import { _decorator, Component, Node, Camera, Color, Layers, DirectionalLight, Material, Prefab, director, Vec3, tween, Tween, view, ResolutionPolicy, AudioClip } from 'cc';
 import { PREVIEW } from 'cc/env';
 import { registerModels, spawnModel, meshLeaves } from './Models';
 import { PLAYER, ENEMY, LAYOUT, TIMING, CHOICES, BUILDINGS, UNITS } from './Config';
@@ -13,6 +13,7 @@ import { Destruction } from './Destruction';
 import { AdAdapter } from './AdAdapter';
 import { GameEvents, EV } from './Events';
 import { Vfx } from './Vfx';
+import { Sound } from './Sound';
 const { ccclass, property } = _decorator;
 
 interface SlotView { side: number; pos: Vec3; ring: Node; building: Node; buildingId?: string; spawner: Spawner; }
@@ -58,6 +59,12 @@ export class Director extends Component {
     @property({ type: [Prefab], tooltip: 'Particle VFX prefabs (assets/vfx): Glow, Star, Spark, Flame, Smoke, NestFire' })
     vfxPrefabs: Prefab[] = [];
 
+    @property({ type: [AudioClip], tooltip: 'Sound effects (assets/audio/sfx_*.mp3), matched by name' })
+    sounds: AudioClip[] = [];
+
+    @property({ type: AudioClip, tooltip: 'Music loop (assets/audio/music.mp3)' })
+    music: AudioClip = null;
+
     @property({ tooltip: 'Log state transitions to the console' })
     logStates = true;
 
@@ -87,6 +94,7 @@ export class Director extends Component {
     private fortressOpen = false;
     private portrait: boolean = null;
     private shakeAt = 0;
+    private hitSoundAt = 0;
     private hitFxAt = [0, 0];
     private savedMinFrac = 0;
     private wrongCount = 0;
@@ -127,6 +135,7 @@ export class Director extends Component {
         this.buildArena();
         this.vfx = new Vfx(this.world, this.vfxPrefabs, { breath: this.breathFire, nest: this.nestFire, ground: this.groundFire });
         this.vfx.setCamera(this.rig.node);
+        Sound.init(this.node, this.sounds, this.music);
         this.sim.fx = this.vfx;
         this.sim.castles = [this.pCastle, this.eCastle];
 
@@ -136,6 +145,8 @@ export class Director extends Component {
         this.hud.onCard = (i) => this.pick(i);
         this.hud.onCta = () => AdAdapter.cta();
         this.hud.onRetry = () => director.loadScene(director.getScene().name);
+        this.hud.onMute = () => { Sound.setMuted(!Sound.muted); this.hud.setSoundIcon(Sound.muted); };
+        this.hud.setSoundIcon(Sound.muted);
         this.rig.onResize = (p) => this.onResize(p);
         this.rig.apply(true);
 
@@ -282,7 +293,10 @@ export class Director extends Component {
     // ---------- event handlers ----------
 
     private onCastleHp(c: Castle, delta: number) {
-        if (delta > 0) { this.hitFeedback(c); this.updateSmoke(c); }
+        if (delta > 0) {
+            this.hitFeedback(c); this.updateSmoke(c);
+            if (this.clock >= this.hitSoundAt) { Sound.play('hit', 0.8); this.hitSoundAt = this.clock + 0.35; }   // sieges hit often
+        }
         if (c === this.pCastle) {
             if (c.hp <= 0) {
                 if (this.state !== 'FAIL' && this.state !== 'FINALE' && this.state !== 'END') this.citadelFalls();
@@ -315,6 +329,7 @@ export class Director extends Component {
     private onImmune(u: Unit) {
         this.hud.popup('IMMUNE', tmpV.set(u.x, 2.6, u.z), '#ffe14d');
         this.vfx.immune(tmpV.set(u.x, u.def.layer === 'air' ? LAYOUT.airHeight + 0.8 : 1.2, u.z));
+        Sound.play('immune');
     }
 
     private onSplash(x: number, z: number, r: number) {
@@ -349,6 +364,7 @@ export class Director extends Component {
                 .call(() => { (b as any).__built = true; })
                 .start();
             this.vfx.buildPoof(slot.pos);
+            Sound.play('build', slot.side === PLAYER ? 1 : 0.7);
         } else (b as any).__built = true;
         slot.building = b;
         if (slot.side === PLAYER && !def.maxCount) this.burst(slot, def.unit);
@@ -488,6 +504,8 @@ export class Director extends Component {
             case 'END':
                 this.sim.stopCombat();
                 this.hud.showEnd(true);
+                Sound.duckMusic();
+                Sound.play('win');
                 AdAdapter.end();
                 break;
             case 'FAIL':
@@ -496,6 +514,8 @@ export class Director extends Component {
                 for (const sl of this.pSlots) this.showRing(sl, false);
                 this.rig.shake(0.5, 0.6);
                 this.hud.showEnd(false);
+                Sound.duckMusic();
+                Sound.play('lose');
                 AdAdapter.end();
                 break;
         }
@@ -617,12 +637,14 @@ export class Director extends Component {
         }
         this.rig.shake(0.6, 0.8);
         this.rig.zoomTo(1.15, 1.2);
+        Sound.play('collapse');
     }
 
     private citadelFalls() {
         this.hud.hideCards();
         for (const s of this.pSlots) this.showRing(s, false);
         this.pCastle.node.active = false;
+        Sound.play('collapse');
         this.destruction.run(this.world, this.pCastle.node.getPosition(), new Vec3(4, 3.5, 4.6),
             ['#7d9be0', '#5b7bc8', '#2c5fe0', '#8fabe8'], 70);
         this.go('FAIL');

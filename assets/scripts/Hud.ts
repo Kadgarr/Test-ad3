@@ -3,7 +3,7 @@
 // font ui_font). This component only shows, fills and animates it. Event-driven: HP bars react to EV.CASTLE_HP and
 // move with tweens; nothing is redrawn per frame (world tags follow units only while any exist).
 import { _decorator, Component, Node, Camera, UITransform, Label, Sprite, SpriteFrame, Color, Vec3, view, tween,
-         Tween, UIOpacity, instantiate, Layers, screen } from 'cc';
+         Tween, UIOpacity, instantiate, Layers, screen, sys } from 'cc';
 import { GameEvents, EV } from './Events';
 const { ccclass, property } = _decorator;
 
@@ -65,12 +65,17 @@ export class Hud extends Component {
     @property(Node) endHand: Node = null;
     @property(Node) overlay: Node = null;
 
+    @property({ type: Node, tooltip: 'Sound toggle button (Sprite), top of the screen' }) muteBtn: Node = null;
+    @property(SpriteFrame) soundOn: SpriteFrame = null;
+    @property(SpriteFrame) soundOff: SpriteFrame = null;
+
     @property({ tooltip: 'Reference size: UI groups are scaled by min(width / refW, height / refH)' }) refW = 720;
     @property refH = 850;
 
     onCard: (i: number) => void = null;
     onCta: () => void = null;
     onRetry: () => void = null;
+    onMute: () => void = null;
 
     private cam3d: Camera = null;
     private hintIdx = -1;
@@ -94,6 +99,12 @@ export class Hud extends Component {
         this.cta.on(Node.EventType.TOUCH_END, () => { if (this.onCta) this.onCta(); });
         this.retry.on(Node.EventType.TOUCH_END, () => { if (this.onRetry) this.onRetry(); });
         this.overlay.on(Node.EventType.TOUCH_END, () => { if (this.endWin.active && this.onCta) this.onCta(); });
+        this.muteBtn.on(Node.EventType.TOUCH_END, () => {
+            if (this.onMute) this.onMute();
+            const s = this.k;   // layout scale, not the current one (a fast double tap would shrink it)
+            Tween.stopAllByTarget(this.muteBtn);
+            tween(this.muteBtn).to(0.06, { scale: new Vec3(s * 0.85, s * 0.85, 1) }).to(0.14, { scale: new Vec3(s, s, 1) }, { easing: 'backOut' }).start();
+        });
         this.choice.active = false;
         this.endCard.active = false;
         this.popupTemplate.active = false;
@@ -103,6 +114,11 @@ export class Hud extends Component {
         screen.on('window-resize', this.relayout, this);
         screen.on('orientation-change', this.relayout, this);
         this.layout();
+    }
+
+    setSoundIcon(muted: boolean) {
+        const sp = this.muteBtn && this.muteBtn.getComponent(Sprite);
+        if (sp) sp.spriteFrame = muted ? this.soundOff : this.soundOn;
     }
 
     private relayout() { this.scheduleOnce(() => this.layout(), 0); }
@@ -123,10 +139,22 @@ export class Hud extends Component {
         this.node.getComponent(UITransform).setContentSize(W, H);
         this.node.setPosition(W / 2, H / 2, 0);
         const k = this.k = Math.min(W / this.refW, H / this.refH);
+        // phone notches / rounded corners: keep the HUD inside the safe area (all zero on plain screens)
+        const sa = sys.getSafeAreaRect();
+        const inL = Math.max(0, sa.x), inB = Math.max(0, sa.y);
+        const inR = Math.max(0, W - sa.x - sa.width), inT = Math.max(0, H - sa.y - sa.height);
         this.top.setScale(k, k, 1);
-        this.top.setPosition(0, H / 2 - 70 * k);
+        const topY = H / 2 - inT - 70 * k;
+        this.top.setPosition((inL - inR) / 2, topY);
         this.choice.setScale(k, k, 1);
-        this.choice.setPosition(0, -H / 2 + 175 * k);
+        this.choice.setPosition(0, -H / 2 + inB + 175 * k);
+        // sound toggle: top-right corner. Beside the HP bars when there is room (landscape), otherwise
+        // under the enemy bar's name (portrait). The bar row reaches x = BAR_EDGE and y = BAR_BOTTOM in Top's units.
+        const BAR_EDGE = 330, BAR_BOTTOM = 60, BTN = 64, M = 16;
+        this.muteBtn.setScale(k, k, 1);
+        const right = W / 2 - inR - (M + BTN / 2) * k;
+        const roomBeside = (W / 2 - inR - (this.top.position.x + BAR_EDGE * k)) / k >= BTN + 2 * M;
+        this.muteBtn.setPosition(right, roomBeside ? topY : topY - (BAR_BOTTOM + M + BTN / 2) * k);
         // overlay covers the whole screen; the end card content is scaled like the rest
         this.overlay.getComponent(UITransform).setContentSize(W / k, H / k);
         this.endCard.setScale(k, k, 1);
