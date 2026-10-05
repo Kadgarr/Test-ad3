@@ -1,6 +1,6 @@
 // HUD: HP bars, choice cards + hand, floating popups, world tags, end card.
-// The whole UI is authored in the scene (Main.scene → Canvas): sprites from assets/ui (one auto atlas), bitmap
-// font ui_font. This component only shows, fills and animates it. Event-driven: HP bars react to EV.CASTLE_HP and
+// The whole UI is authored in the scene (Main.scene → Canvas): sprites from assets/ui/ui_atlas.plist (one texture shared with the bitmap
+// font ui_font). This component only shows, fills and animates it. Event-driven: HP bars react to EV.CASTLE_HP and
 // move with tweens; nothing is redrawn per frame (world tags follow units only while any exist).
 import { _decorator, Component, Node, Camera, UITransform, Label, Sprite, SpriteFrame, Color, Vec3, view, tween,
          Tween, UIOpacity, instantiate, Layers, screen } from 'cc';
