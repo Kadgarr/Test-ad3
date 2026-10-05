@@ -337,8 +337,10 @@ export class Director extends Component {
         this.world.addChild(b);
         b.setPosition(slot.pos);
         slot.buildingId = id;
-        if (id === 'dragon_nest') this.vfx.attachNestFire(b);
         b.setRotationFromEuler(0, facadeYaw(id, !!this.portrait), 0);   // facade toward the screen
+        // after the yaw: the nest flame is a camera-facing quad parented to the building, so it must be aimed
+        // once the building's final rotation is set (aiming it first left it tilted into the tower / sideways)
+        if (id === 'dragon_nest') this.vfx.attachNestFire(b);
         if (anim) {
             b.setScale(0.7, 0.02, 0.7);
             tween(b).to(0.2, { scale: RISE }, { easing: 'quadOut' })
