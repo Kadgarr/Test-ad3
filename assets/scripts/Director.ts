@@ -1,7 +1,7 @@
 // Scenario state machine. Event-driven: reacts to GameEvents (castle HP, unit spawn/death)
 // and to state timers (scheduleOnce with an epoch guard). It also owns the single game tick:
 // update() only scales time, steps LaneSim, debris and world tags — no polling of game state.
-import { _decorator, Component, Node, Camera, Color, Layers, DirectionalLight, Material, Prefab, director, Vec3, tween, Tween, view, ResolutionPolicy, AudioClip } from 'cc';
+import { _decorator, Component, Node, Camera, Color, Layers, DirectionalLight, Material, Prefab, director, Vec3, tween, Tween, view, ResolutionPolicy, AudioClip, MeshRenderer, BatchingUtility, game } from 'cc';
 import { PREVIEW } from 'cc/env';
 import { registerModels, spawnModel, meshLeaves } from './Models';
 import { PLAYER, ENEMY, LAYOUT, TIMING, CHOICES, BUILDINGS, UNITS } from './Config';
@@ -144,6 +144,12 @@ export class Director extends Component {
         this.hud.init(this.rig.cam);
         this.hud.onCard = (i) => this.pick(i);
         this.hud.onCta = () => AdAdapter.cta();
+        // ad network lifecycle: hidden ad = frozen game + silence; device volume 0 = mute
+        AdAdapter.bind({
+            pause: () => { Sound.setPaused(true); game.pause(); },
+            resume: () => { game.resume(); Sound.setPaused(false); },
+            mute: (m) => Sound.setExternalMute(m),
+        });
         this.hud.onRetry = () => director.loadScene(director.getScene().name);
         this.hud.onMute = () => { Sound.setMuted(!Sound.muted); this.hud.setSoundIcon(Sound.muted); };
         this.hud.setSoundIcon(Sound.muted);
@@ -227,7 +233,7 @@ export class Director extends Component {
     }
 
     private buildArena() {
-        if (this.useSceneArena()) return;
+        if (this.useSceneArena()) { this.batchStatic(); return; }
         // Fallback: no authored arena in the scene — build the same layout from code.
         ground(this.world);
         baseFences(this.world, PLAYER);
@@ -246,6 +252,38 @@ export class Director extends Component {
         this.eCastle = new Castle(ENEMY, LAYOUT.castleX, TIMING.castleHp, ec);
         for (const s of LAYOUT.playerSlots) this.pSlots.push(this.makeSlot(PLAYER, s[0], s[1]));
         for (const s of LAYOUT.enemySlots) this.eSlots.push(this.makeSlot(ENEMY, s[0], s[1]));
+    }
+
+    // Static batching: the authored scenery that casts shadows (Decor + shadow-casting Landmarks: trees, bushes,
+    // rocks, cliffs...) is merged into ONE mesh at start. Instancing already draws repeated meshes together; this
+    // also folds the ~10 different scenery meshes into one draw (plus one planar-shadow draw).
+    // Fences are left alone (one mesh, already a single instanced draw); non-casting landmarks (ponds) too.
+    private batchStatic() {
+        if (!BatchingUtility) return;
+        const src = new Node('StaticSrc');
+        this.world.addChild(src);
+        let n = 0;
+        for (const name of ['Decor', 'Landmarks']) {
+            const g = this.world.getChildByName(name);
+            if (!g) continue;
+            for (const mr of g.getComponentsInChildren(MeshRenderer)) {
+                if (mr.shadowCastingMode !== MeshRenderer.ShadowCastingMode.ON || !mr.mesh) continue;
+                mr.node.setParent(src, true);   // keep the world transform
+                n++;
+            }
+        }
+        if (!n) { src.destroy(); return; }
+        const dst = new Node('StaticBatched');
+        this.world.addChild(dst);
+        if (BatchingUtility.batchStaticModel(src, dst)) {
+            const mr = dst.getComponent(MeshRenderer);
+            if (mr) { mr.shadowCastingMode = MeshRenderer.ShadowCastingMode.ON; mr.receiveShadow = MeshRenderer.ShadowReceivingMode.ON; }
+            src.destroy();
+            this.log('static batch: ' + n + ' models -> 1 mesh');
+        } else {
+            src.active = true;   // could not merge (mixed materials / vertex formats): keep the originals
+            dst.destroy();
+        }
     }
 
     // Authored arena: World/Castle_Alliance, World/Castle_Orcs,

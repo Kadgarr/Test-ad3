@@ -28,7 +28,9 @@ class SoundImpl {
     private last = new Map<string, number>();
     private recent: number[] = [];
     private unlocked = false;
-    private _muted = false;
+    private _muted = false;      // the player's sound toggle
+    private extMuted = false;    // the ad network (device volume 0)
+    private paused = false;      // the ad network hid the ad
     private musicVol = { v: MUSIC_VOL };
     private probes: any[] = [];
 
@@ -47,7 +49,7 @@ class SoundImpl {
         this.music.loop = true;
         Tween.stopAllByTarget(this.musicVol);
         this.musicVol.v = MUSIC_VOL;
-        this.music.volume = this._muted ? 0 : MUSIC_VOL;
+        this.music.volume = this.silent ? 0 : MUSIC_VOL;
         this.last.clear();
         this.recent.length = 0;
 
@@ -90,8 +92,10 @@ class SoundImpl {
         this.unlocked = true;
     }
 
+    private get silent() { return this._muted || this.extMuted || this.paused; }
+
     play(name: SfxName, vol = 1) {
-        if (!this.unlocked || this._muted || !this.sfx || !this.sfx.isValid) return;
+        if (!this.unlocked || this.silent || !this.sfx || !this.sfx.isValid) return;
         const clip = this.clips.get(name);
         if (!clip) return;
         const now = performance.now() / 1000;
@@ -113,18 +117,26 @@ class SoundImpl {
         if (!this.music || !this.music.isValid) return;
         Tween.stopAllByTarget(this.musicVol);
         tween(this.musicVol).to(dur, { v: to }, {
-            onUpdate: () => { if (this.music.isValid && !this._muted) this.music.volume = this.musicVol.v; },
+            onUpdate: () => { if (this.music.isValid && !this.silent) this.music.volume = this.musicVol.v; },
         }).start();
     }
 
     // Sound toggle in the HUD, and later the ad network wrapper (AdAdapter): mute / unmute everything.
-    setMuted(m: boolean) {
-        this._muted = m;
-        if (this.music && this.music.isValid) this.music.volume = m ? 0 : this.musicVol.v;
+    setMuted(m: boolean) { this._muted = m; this.applyVolume(); }
+    // ad network: device volume / mute switch
+    setExternalMute(m: boolean) { this.extMuted = m; this.applyVolume(); }
+    // ad network hid / showed the ad
+    setPaused(p: boolean) {
+        this.paused = p;
+        if (p) this.onHide(); else this.onShow();
+        this.applyVolume();
+    }
+    private applyVolume() {
+        if (this.music && this.music.isValid) this.music.volume = this.silent ? 0 : this.musicVol.v;
     }
 
     private onHide() { if (this.music && this.music.isValid && this.music.playing) this.music.pause(); }
-    private onShow() { if (this.unlocked && this.music && this.music.isValid && !this.music.playing) this.music.play(); }
+    private onShow() { if (this.unlocked && !this.paused && this.music && this.music.isValid && !this.music.playing) this.music.play(); }
 }
 
 export const Sound = new SoundImpl();

@@ -1,0 +1,22 @@
+{
+  "title": "Castle Fight",
+  "buildDir": "build/playable-web",
+  "outDir": "build/playable",
+  "store": {
+    "ios": "https://apps.apple.com/app/id0000000000",
+    "android": "https://play.google.com/store/apps/details?id=com.example.castlefight"
+  },
+  "lite": {
+    "6fa85f3a-158e-4577-919c-30af521485a3": "lite/ui_atlas_q256.png",
+    "d69eeaed-ff6b-4c2a-bfd3-c816d73c06e9": "lite/music_32k.mp3"
+  },
+  "networks": [
+    { "name": "applovin" },
+    { "name": "unity" },
+    { "name": "ironsource" },
+    { "name": "google" },
+    { "name": "facebook", "lite": true, "limitMB": 2 },
+    { "name": "mintegral" },
+    { "name": "tiktok" }
+  ]
+}
